@@ -1,0 +1,31 @@
+type Users {
+  user_id: ID!
+  user_name: String!
+}
+
+type loginUserObject {
+  username: String!
+  password: String!
+  accessToken: String
+  role: String!
+}
+
+input UserType {
+  user_id: ID!
+  user_name: String!
+}
+
+input UserLoginInput {
+  username: String!
+  password: String!
+  accessToken: String
+  role: String!
+}
+
+type Query {
+  getUser: Users!
+}
+
+type Mutation {
+  userLogin(loginUserInput: UserLoginInput!): loginUserObject!
+}
