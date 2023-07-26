@@ -4,6 +4,7 @@ import projectSlice from './projectSlice';
 import imageSlice from './imageSlice';
 import createProjectSlice from './createProjectSlice';
 import tempData from './tempData';
+import loginSlice from './loginSlice';
 const store = configureStore({
   reducer: {
     demo: demoSlice,
@@ -11,6 +12,7 @@ const store = configureStore({
     image: imageSlice,
     temp: tempData,
     createProject: createProjectSlice,
+    jwt: loginSlice,
   },
 });
 

@@ -13,12 +13,14 @@ import client from './graphql/client';
 import store from './store/store';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CreateProject from './components/CreateProject';
+import Login from './components/Login';
 
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path='/' element={<RootLayout />}>
         <Route index element={<Projects />} />
+        <Route path='/login' element={<Login />} />
         <Route path='/project' element={<DashBoard />} />
         <Route path='/create' element={<CreateProject />} />
       </Route>

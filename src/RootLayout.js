@@ -7,6 +7,7 @@ import NavBarPanel from './components/NavBar';
 import FooterComponent from './components/FooterComponent';
 import { fetchProjects } from './store/projectSlice';
 import ContextFunc from './context/ContextFunc';
+import { setJwt, removeJwt } from './store/loginSlice';
 
 const getProjects = gql`
   query GetProjects {
@@ -33,6 +34,14 @@ const RootLayout = () => {
   useEffect(() => {
     data && dispatch(fetchProjects(data.getProjects));
   }, [data, dispatch]);
+  useEffect(() => {
+    const jwt = localStorage.getItem('jwt');
+    if (jwt && jwt.length !== 0) {
+      dispatch(setJwt(jwt));
+    } else {
+      dispatch(removeJwt());
+    }
+  }, [dispatch]);
   return (
     <>
       <ContextFunc.Provider value={contextFunctions}>

@@ -81,7 +81,10 @@ const Projects = () => {
             src={temp.image}
             style={{ height: 200, width: 200, borderRadius: 100 }}
           />
-          <ul className='m-5'>
+          <ul
+            className='m-5 border-start border-5 border-danger'
+            style={{ listStyleType: 'circle' }}
+          >
             <li>Description: {temp.description}</li>
             <li>End Date: {temp.end_date}</li>
             <li>
@@ -90,6 +93,13 @@ const Projects = () => {
             <li>Amount To Reach: {temp.target_amount}</li>
             <li>Total Pledged Amount: {temp.pledge_amount}</li>
           </ul>
+          <Button
+            type='button'
+            variant='warning'
+            className='d-flex h-25 mt-5 ps-4 col-3 text-center'
+          >
+            Back This Project
+          </Button>
         </Modal.Body>
         <Modal.Footer>
           <Button variant='secondary' onClick={handleClose}>
