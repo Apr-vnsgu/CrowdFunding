@@ -16,7 +16,4 @@ export class UserLoginInput {
 
   @Field({ nullable: true })
   accessToken?: string;
-
-  @Field()
-  role: string;
 }

@@ -1,31 +1,77 @@
 type Users {
   user_id: ID!
   user_name: String!
+  username: String!
+  password: String!
+  bookmarks: [String!]
+}
+
+type Projects {
+  project_id: ID!
+  username: String!
+  project_name: String!
+  target_amount: Float!
+  pledge_amount: Float
+  description: String
+  end_date: String!
+  image: String!
 }
 
 type loginUserObject {
   username: String!
   password: String!
   accessToken: String
-  role: String!
-}
-
-input UserType {
-  user_id: ID!
-  user_name: String!
 }
 
 input UserLoginInput {
   username: String!
   password: String!
   accessToken: String
-  role: String!
 }
 
 type Query {
-  getUser: Users!
+  getUsers: [Users!]!
+  getProjects: [Projects!]!
+  getAllProjectsOfAUser(username: String!): [Projects!]!
+  endTime: Boolean!
 }
 
 type Mutation {
+  createUser(createUserInput: CreateUserInput!): Users!
+  bookMarkAProject(bookMark: BookMark!): Boolean!
+  createProject(createProjectInput: CreateProjectInput!): Projects!
+  pledgeAProject(pleadge: PledgeAProject!): Projects!
+  DeleteProject(deleteProject: DeleteProject!): Boolean!
   userLogin(loginUserInput: UserLoginInput!): loginUserObject!
+}
+
+input CreateUserInput {
+  user_name: String!
+  username: String!
+  password: String!
+}
+
+input BookMark {
+  username: String!
+  project_name: String!
+}
+
+input CreateProjectInput {
+  username: String!
+  project_name: String!
+  target_amount: Float!
+  description: String
+  end_date: String!
+  image: String!
+}
+
+input PledgeAProject {
+  username: String!
+  pledge_amount: Float!
+  project_name: String!
+}
+
+input DeleteProject {
+  username: String!
+  project_name: String!
 }

@@ -1,21 +1,36 @@
 /* eslint-disable prettier/prettier */
-import { Resolver, Query } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UserType } from './user.type';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth-guard';
 import { RolesGuard } from 'src/auth/role.guard';
-import { Roles } from 'src/auth/role-decorator';
-import { Role } from 'src/auth/role.enum';
+import { UserService } from './user.service';
+import { CreateUserInput } from './createUserInput';
+import { User } from './user.entity';
+import { BookMark } from './bookMarkProject-DTO';
 
 @Resolver(() => UserType)
 export class UserResolver {
-  @Query(() => UserType)
+  constructor(private userService: UserService) {}
+
+  @Query(() => [UserType])
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.User)
-  getUser() {
-    return {
-      user_id: '1',
-      user_name: 'Arya',
-    };
+  async getUsers(): Promise<User[]> {
+    return this.userService.getUsers();
+  }
+
+  @Mutation(() => UserType)
+  async createUser(
+    @Args('createUserInput') createUserInput: CreateUserInput,
+  ): Promise<User> {
+    return this.userService.registerUser(createUserInput);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard)
+  async bookMarkAProject(
+    @Args('bookMark') bookMark: BookMark,
+  ): Promise<boolean> {
+    return await this.userService.bookMarkAProject(bookMark);
   }
 }
