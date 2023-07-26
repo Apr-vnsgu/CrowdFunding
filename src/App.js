@@ -1,25 +1,37 @@
-import logo from './logo.svg';
-import './App.css';
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
+  RouterProvider,
+} from 'react-router-dom';
+import { ApolloProvider } from '@apollo/client';
+import { Provider } from 'react-redux';
+import RootLayout from './RootLayout';
+import DashBoard from './components/DashBoard';
+import Projects from './components/Projects';
+import client from './graphql/client';
+import store from './store/store';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import CreateProject from './components/CreateProject';
 
 function App() {
+  const router = createBrowserRouter(
+    createRoutesFromElements(
+      <Route path='/' element={<RootLayout />}>
+        <Route index element={<Projects />} />
+        <Route path='/project' element={<DashBoard />} />
+        <Route path='/create' element={<CreateProject />} />
+      </Route>
+    )
+  );
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='App'>
+      <Provider store={store}>
+        <ApolloProvider client={client}>
+          <RouterProvider router={router} />
+        </ApolloProvider>
+      </Provider>
     </div>
   );
 }
-
 export default App;

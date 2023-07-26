@@ -1,0 +1,5 @@
+.projects :hover {
+  filter: brightness(105%);
+  text-decoration: underline 1px solid black;
+  transform: scale(1.01);
+}
