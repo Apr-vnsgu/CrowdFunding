@@ -14,6 +14,7 @@ import store from './store/store';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CreateProject from './components/CreateProject';
 import Login from './components/Login';
+import SignUp from './components/SignUp';
 
 function App() {
   const router = createBrowserRouter(
@@ -21,6 +22,7 @@ function App() {
       <Route path='/' element={<RootLayout />}>
         <Route index element={<Projects />} />
         <Route path='/login' element={<Login />} />
+        <Route path='/signup' element={<SignUp />} />
         <Route path='/project' element={<DashBoard />} />
         <Route path='/create' element={<CreateProject />} />
       </Route>

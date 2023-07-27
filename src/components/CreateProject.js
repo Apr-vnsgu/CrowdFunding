@@ -31,6 +31,7 @@ const CreateProject = () => {
   const image = useSelector((state) => state.image);
   const data = useSelector((state) => state.createProject.formData);
   const jwt = useSelector((state) => state.jwt);
+  const tempUser = useSelector((state) => state.tempUser);
   const { refetch } = useContext(ContextFunc);
   const [imgObj, setImgObj] = useState({});
   const [show, setShow] = useState(false);
@@ -66,7 +67,6 @@ const CreateProject = () => {
   };
   const handleClick = async () => {
     if (
-      !data.username ||
       !data.project_title ||
       !data.project_description ||
       !data.end_date ||
@@ -93,7 +93,7 @@ const CreateProject = () => {
           project({
             variables: {
               createProjectInput: {
-                username: data.username,
+                username: tempUser.username,
                 project_name: data.project_title,
                 description: data.project_description,
                 end_date: data.end_date,
@@ -104,7 +104,6 @@ const CreateProject = () => {
           })
             .then((response) => {
               if (response) {
-                enqueueSnackbar('Project Creation Success');
                 dispatch(removeImage());
                 dispatch(resetField());
                 nav('/');
@@ -149,9 +148,9 @@ const CreateProject = () => {
               <Form.Control
                 type='email'
                 name='username'
-                value={data.username.trimStart()}
+                disabled
+                value={tempUser.username}
                 placeholder='Username'
-                onChange={handleInput}
               />
             </Form.Group>
             <hr style={{ color: 'red' }} />
@@ -232,12 +231,12 @@ const CreateProject = () => {
               )}
             </Form.Group>
           </Form>
-          {data.username && (
+          {data.project_title && (
             <Card
               style={{
                 width: '40rem',
-                height: 500,
                 left: 650,
+                maxHeight: 500,
                 top: -500,
                 opacity: '90%',
                 overflowY: 'scroll',
@@ -248,11 +247,11 @@ const CreateProject = () => {
                 <Card.Title>This is how it'll be looking</Card.Title>
                 <br />
                 <Card.Text>
-                  {data.username && (
+                  {tempUser.username && (
                     <>
                       <b>Username</b>
                       <br />
-                      {data.username}
+                      {tempUser.username}
                       <br />
                     </>
                   )}

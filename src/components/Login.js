@@ -6,7 +6,7 @@ import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import { enqueueSnackbar } from 'notistack';
 import { setJwt } from '../store/loginSlice';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 const login = gql`
   mutation Mutation($loginUserInput: UserLoginInput!) {
     userLogin(loginUserInput: $loginUserInput) {
@@ -123,6 +123,9 @@ const Login = () => {
           />
         </Form.Group>
         <hr style={{ color: 'blue' }} />
+        <Form.Group>
+          Not A User? <Link to='/signup'>Register Here!</Link>
+        </Form.Group>
         <Form.Group style={{ paddingTop: 20 }}>
           <Button type='button' onClick={handleLogin}>
             {loading ? (

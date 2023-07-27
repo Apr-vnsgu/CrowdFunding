@@ -2,7 +2,6 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   formData: {
-    username: '',
     project_title: '',
     project_description: '',
     target_amount: 0,

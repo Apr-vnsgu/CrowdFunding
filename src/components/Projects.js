@@ -38,7 +38,15 @@ const Projects = () => {
         autoHideDuration: 3000,
       });
     } else {
-      console.log(project);
+      if (temp.username === tempUser.username) {
+        enqueueSnackbar('❗You Cannot Pledge Owned Projects', {
+          style: { background: 'white', color: 'red' },
+          preventDuplicate: 'true',
+          autoHideDuration: 3000,
+        });
+      } else {
+        console.log(project);
+      }
     }
   };
   const handleBookMark = (project) => {
@@ -64,7 +72,10 @@ const Projects = () => {
         })
         .catch((err) => {
           enqueueSnackbar(`❗ ${err.message}`, {
-            style: { background: 'white', color: 'red' },
+            style: {
+              background: 'white',
+              color: 'red',
+            },
           });
         });
     }
@@ -168,7 +179,7 @@ const Projects = () => {
               </>
             )}
           </Button>
-          <Button variant='secondary' onClick={handleClose}>
+          <Button variant='danger' onClick={handleClose}>
             Close
           </Button>
           <Button
