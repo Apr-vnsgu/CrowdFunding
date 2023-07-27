@@ -6,10 +6,11 @@ const httpLink = createHttpLink({
 });
 
 const authLink = setContext((_, { headers }) => {
+  const jwt = localStorage.getItem('jwt');
   return {
     headers: {
       ...headers,
-      Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFyeWFyYW5hNDlAZ21haWwuY29tIiwiaWF0IjoxNjg5NTk0MjI2fQ.p0-rE_y2jT-ok3NLzOebsEhfZOLsBPvbvXEILrV-1Pg `,
+      Authorization: `Bearer ${jwt} `,
     },
   };
 });

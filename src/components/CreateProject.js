@@ -5,9 +5,10 @@ import { updateField, resetField } from '../store/createProjectSlice';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
+import Spinner from 'react-bootstrap/Spinner';
 import Modal from 'react-bootstrap/Modal';
 import { useSelector, useDispatch } from 'react-redux';
-import { closeSnackbar, enqueueSnackbar } from 'notistack';
+import { enqueueSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 import ContextFunc from '../context/ContextFunc';
 const createProject = gql`
@@ -64,6 +65,22 @@ const CreateProject = () => {
     dispatch(updateField({ field: name, value }));
   };
   const handleClick = async () => {
+    if (
+      !data.username ||
+      !data.project_title ||
+      !data.project_description ||
+      !data.end_date ||
+      data.target_amount === 0 ||
+      !imgObj
+    ) {
+      enqueueSnackbar('Make Sure No Field Is Empty', {
+        style: { background: 'white', color: 'red' },
+      });
+      return null;
+    }
+    enqueueSnackbar(`↻ This May Take A Bit....`, {
+      style: { background: 'white', color: 'red' },
+    });
     const formData = new FormData();
     formData.append('file', imgObj);
     formData.append('project_name', 'StintStewarship');
@@ -98,7 +115,9 @@ const CreateProject = () => {
               }
             })
             .catch((err) => {
-              console.log(err);
+              enqueueSnackbar(`❗ ${err.message}`, {
+                style: { background: 'white', color: 'red' },
+              });
             });
         });
       })
@@ -130,7 +149,7 @@ const CreateProject = () => {
               <Form.Control
                 type='email'
                 name='username'
-                value={data.username}
+                value={data.username.trimStart()}
                 placeholder='Username'
                 onChange={handleInput}
               />
@@ -140,7 +159,7 @@ const CreateProject = () => {
               <Form.Label>Project Title</Form.Label>
               <Form.Control
                 type='text'
-                value={data.project_title}
+                value={data.project_title.trimStart()}
                 placeholder='Project Title'
                 name='project_title'
                 onChange={handleInput}
@@ -153,7 +172,7 @@ const CreateProject = () => {
               <Form.Control
                 as='textarea'
                 rows={1}
-                value={data.project_description}
+                value={data.project_description.trimStart()}
                 name='project_description'
                 placeholder='Project Description'
                 onChange={handleInput}
@@ -203,26 +222,8 @@ const CreateProject = () => {
                   onClick={() => {
                     dispatch(removeImage());
                     dispatch(resetField());
-                    enqueueSnackbar('Success!', {
-                      action(id) {
-                        return (
-                          <>
-                            <button
-                              onClick={() => {
-                                closeSnackbar(id);
-                              }}
-                              style={{
-                                textDecoration: 'none',
-                                border: 0,
-                                color: 'red',
-                                background: 'transparent',
-                              }}
-                            >
-                              Dismiss
-                            </button>
-                          </>
-                        );
-                      },
+                    enqueueSnackbar('Reset ↻', {
+                      style: { color: 'red', background: 'white' },
                     });
                   }}
                 >
@@ -279,6 +280,15 @@ const CreateProject = () => {
                       <b>Target Amount</b>
                       <br />
                       {data.target_amount && data.target_amount}
+                      <br />
+                    </>
+                  )}
+                  {data.end_date && (
+                    <>
+                      <br />
+                      <b>End Date</b>
+                      <br />
+                      {data.end_date && data.end_date}
                     </>
                   )}
                 </Card.Text>
@@ -287,7 +297,15 @@ const CreateProject = () => {
                   className='p-4'
                 >
                   <Button variant='primary' onClick={handleClick}>
-                    {loading ? 'Creating' : 'Create'}
+                    {loading ? (
+                      <Spinner
+                        animation='border'
+                        variant='secondary'
+                        size='sm'
+                      />
+                    ) : (
+                      'Create'
+                    )}
                   </Button>
                 </Card.Footer>
               </Card.Body>

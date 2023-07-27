@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { gql, useMutation } from '@apollo/client';
 import Card from 'react-bootstrap/Card';
 import Modal from 'react-bootstrap/Modal';
 import Spinner from 'react-bootstrap/Spinner';
@@ -7,17 +8,66 @@ import Button from 'react-bootstrap/Button';
 import './Projects.css';
 import ContextFunc from '../context/ContextFunc';
 import { setTemp } from '../store/tempData';
+import { enqueueSnackbar } from 'notistack';
+
+const bookmark = gql`
+  mutation BookMarkAProject($bookMark: BookMark!) {
+    bookMarkAProject(bookMark: $bookMark)
+  }
+`;
 
 const Projects = () => {
   const dispatch = useDispatch();
   const projData = useSelector((state) => state.projects[0]);
+  const jwt = useSelector((state) => state.jwt);
   const temp = useSelector((state) => state.temp);
-  const { loading } = useContext(ContextFunc);
+  const tempUser = useSelector((state) => state.tempUser);
+  const [bookMark, bookmarkOption] = useMutation(bookmark);
+  const { loading, userOptions } = useContext(ContextFunc);
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = (project) => {
     setShow(true);
     dispatch(setTemp(project));
+  };
+  const handlePledge = (project) => {
+    if (jwt.length === 0) {
+      enqueueSnackbar('❗ You Must Login First', {
+        style: { background: 'white', color: 'red' },
+        preventDuplicate: 'true',
+        autoHideDuration: 3000,
+      });
+    } else {
+      console.log(project);
+    }
+  };
+  const handleBookMark = (project) => {
+    if (jwt.length === 0) {
+      enqueueSnackbar('❗ You Must Login First', {
+        style: { background: 'white', color: 'red' },
+        preventDuplicate: 'true',
+        autoHideDuration: 3000,
+      });
+    } else {
+      bookMark({
+        variables: {
+          bookMark: {
+            username: tempUser.username,
+            project_name: project.project_name,
+          },
+        },
+      })
+        .then((res) => {
+          if (res) {
+            console.log(userOptions.refetch());
+          }
+        })
+        .catch((err) => {
+          enqueueSnackbar(`❗ ${err.message}`, {
+            style: { background: 'white', color: 'red' },
+          });
+        });
+    }
   };
   const projects =
     projData &&
@@ -93,19 +143,42 @@ const Projects = () => {
             <li>Amount To Reach: {temp.target_amount}</li>
             <li>Total Pledged Amount: {temp.pledge_amount}</li>
           </ul>
-          <Button
-            type='button'
-            variant='warning'
-            className='d-flex h-25 mt-5 ps-4 col-3 text-center'
-          >
-            Back This Project
-          </Button>
         </Modal.Body>
         <Modal.Footer>
+          <Button
+            variant={
+              tempUser.bookmarks &&
+              tempUser.bookmarks.includes(temp.project_name)
+                ? 'success'
+                : 'light'
+            }
+            style={{
+              boxShadow: '0px 0px 5px 1px lightgray',
+            }}
+            onClick={() => handleBookMark(temp)}
+          >
+            {bookmarkOption.loading ? (
+              <Spinner size='sm' animation='border' variant='secondary' />
+            ) : (
+              <>
+                {tempUser.bookmarks &&
+                tempUser.bookmarks.includes(temp.project_name)
+                  ? 'Bookmarked ✓'
+                  : 'Bookmark 📑'}
+              </>
+            )}
+          </Button>
           <Button variant='secondary' onClick={handleClose}>
             Close
           </Button>
-          <Button variant='info'>Pledge</Button>
+          <Button
+            variant='warning'
+            onClick={() => {
+              handlePledge(temp);
+            }}
+          >
+            Back This Project
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>

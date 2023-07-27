@@ -3,3 +3,6 @@
   text-decoration: underline 1px solid black;
   transform: scale(1.01);
 }
+#navLink:hover {
+  color: orange;
+}
