@@ -130,7 +130,7 @@ const Login = () => {
           <Button type='button' onClick={handleLogin}>
             {loading ? (
               <>
-                <Spinner animation='border' variant='secondary' size='sm' />
+                <Spinner animation='border' size='sm' />
               </>
             ) : (
               'Log In'

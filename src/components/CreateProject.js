@@ -114,9 +114,15 @@ const CreateProject = () => {
               }
             })
             .catch((err) => {
-              enqueueSnackbar(`❗ ${err.message}`, {
-                style: { background: 'white', color: 'red' },
-              });
+              if (err.message.includes('duplicate key error')) {
+                enqueueSnackbar(`❗ Project With This Name Already Exists`, {
+                  style: { background: 'white', color: 'red' },
+                });
+              } else {
+                enqueueSnackbar(`❗ ${err.message}`, {
+                  style: { background: 'white', color: 'red' },
+                });
+              }
             });
         });
       })

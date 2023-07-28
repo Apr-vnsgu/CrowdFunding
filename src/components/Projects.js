@@ -1,10 +1,14 @@
 import React, { useContext, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { gql, useMutation } from '@apollo/client';
+import GooglePayButton from '@google-pay/button-react';
 import Card from 'react-bootstrap/Card';
 import Modal from 'react-bootstrap/Modal';
 import Spinner from 'react-bootstrap/Spinner';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
 import './Projects.css';
 import ContextFunc from '../context/ContextFunc';
 import { setTemp } from '../store/tempData';
@@ -16,6 +20,18 @@ const bookmark = gql`
   }
 `;
 
+const pledge = gql`
+  mutation PledgeAProject($pleadge: PledgeAProject!) {
+    pledgeAProject(pleadge: $pleadge) {
+      project_id
+      project_name
+      target_amount
+      username
+      pledge_amount
+    }
+  }
+`;
+
 const Projects = () => {
   const dispatch = useDispatch();
   const projData = useSelector((state) => state.projects[0]);
@@ -23,12 +39,25 @@ const Projects = () => {
   const temp = useSelector((state) => state.temp);
   const tempUser = useSelector((state) => state.tempUser);
   const [bookMark, bookmarkOption] = useMutation(bookmark);
-  const { loading, userOptions } = useContext(ContextFunc);
+  const [pleadgeFunc] = useMutation(pledge);
+  const { loading, userOptions, refetch } = useContext(ContextFunc);
   const [show, setShow] = useState(false);
-  const handleClose = () => setShow(false);
+  const [showButton, setShowButton] = useState(false);
+  const [pName, setPName] = useState('');
+  const [amount, setAmount] = useState(0);
+  const handleClose = () => {
+    setShow(false);
+    setShowButton(false);
+    setAmount('');
+  };
   const handleShow = (project) => {
     setShow(true);
+    setAmount('');
     dispatch(setTemp(project));
+  };
+  const handleHover = (project) => {
+    setAmount('');
+    setPName(project.project_name);
   };
   const handlePledge = (project) => {
     if (jwt.length === 0) {
@@ -45,7 +74,8 @@ const Projects = () => {
           autoHideDuration: 3000,
         });
       } else {
-        console.log(project);
+        setShowButton((prev) => !prev);
+        setAmount('');
       }
     }
   };
@@ -80,34 +110,46 @@ const Projects = () => {
         });
     }
   };
+  const renderTooltip = (props) => (
+    <Tooltip id='button-tooltip' {...props}>
+      {pName}
+    </Tooltip>
+  );
   const projects =
     projData &&
     projData.map((project) => {
       return (
-        <div
-          className='col-md-3 rounded projects'
-          style={{
-            marginTop: 20,
-            marginLeft: 100,
-            boxShadow: '0 2px 20px lightgray',
-          }}
-          onClick={() => handleShow(project)}
+        <OverlayTrigger
+          delay={{ show: 250, hide: 200 }}
+          project={project.project_name}
           key={project.project_id}
+          onEnter={() => handleHover(project)}
+          overlay={renderTooltip}
         >
-          <Card className='h-100'>
-            <div className='text-center'>
-              <Card.Img
-                src={project.image}
-                alt={project.project_name}
-                style={{ height: 250 }}
-              />
-            </div>
-            <Card.Body className='text-center'>
-              <Card.Title>{project.project_name}</Card.Title>
-              <Card.Text>{project.description}</Card.Text>
-            </Card.Body>
-          </Card>
-        </div>
+          <div
+            className='col-md-3 rounded projects'
+            style={{
+              marginTop: 20,
+              marginLeft: 100,
+              boxShadow: '0 2px 20px lightgray',
+            }}
+            onClick={() => handleShow(project)}
+          >
+            <Card className='h-100'>
+              <div className='text-center'>
+                <Card.Img
+                  src={project.image}
+                  alt={project.project_name}
+                  style={{ height: 250 }}
+                />
+              </div>
+              <Card.Body className='text-center'>
+                <Card.Title>{project.project_name}</Card.Title>
+                <Card.Text>{project.description}</Card.Text>
+              </Card.Body>
+            </Card>
+          </div>
+        </OverlayTrigger>
       );
     });
   return (
@@ -190,6 +232,85 @@ const Projects = () => {
           >
             Back This Project
           </Button>
+          {showButton && jwt && (
+            <Form>
+              <Form.Control
+                type='number'
+                value={amount}
+                placeholder='Pledge An Amount'
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                }}
+                min={0}
+              />
+            </Form>
+          )}
+          {amount && jwt && (
+            <GooglePayButton
+              environment='TEST'
+              paymentRequest={{
+                apiVersion: 2,
+                apiVersionMinor: 0,
+                allowedPaymentMethods: [
+                  {
+                    type: 'CARD',
+                    parameters: {
+                      allowedAuthMethods: ['CRYPTOGRAM_3DS', 'PAN_ONLY'],
+                      allowedCardNetworks: ['VISA', 'MASTERCARD'],
+                    },
+                    tokenizationSpecification: {
+                      type: 'PAYMENT_GATEWAY',
+                      parameters: {
+                        gateway: 'example',
+                        gatewayMerchantId: 'exampleGatewayMerchantId',
+                      },
+                    },
+                  },
+                ],
+                merchantInfo: {
+                  merchantId: '12345678901234567890',
+                  merchantName: 'Apr',
+                },
+                transactionInfo: {
+                  totalPriceLabel: `The Payment is of $ ${amount}`,
+                  totalPriceStatus: 'FINAL',
+                  totalPrice: `${amount}`,
+                  countryCode: 'US',
+                  currencyCode: 'USD',
+                },
+              }}
+              onLoadPaymentData={(payment) => {
+                if (payment) {
+                  pleadgeFunc({
+                    variables: {
+                      pleadge: {
+                        pledge_amount: +amount,
+                        project_name: temp.project_name,
+                        username: tempUser.username,
+                      },
+                    },
+                  })
+                    .then((res) => {
+                      console.log(res);
+                      enqueueSnackbar('Payment Success', {
+                        variant: 'success',
+                      });
+                      refetch();
+                      setAmount('');
+                      setShow(false);
+                      setShowButton(false);
+                    })
+                    .catch((err) => {
+                      enqueueSnackbar(`❗ ${err.message}`, {
+                        style: { color: 'red', background: 'white' },
+                      });
+                    });
+                }
+              }}
+              buttonSizeMode='fill'
+              buttonType='pay'
+            />
+          )}
         </Modal.Footer>
       </Modal>
     </div>
