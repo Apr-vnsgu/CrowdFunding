@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { gql, useMutation } from '@apollo/client';
 import GooglePayButton from '@google-pay/button-react';
@@ -9,6 +9,8 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Tabs from 'react-bootstrap/Tabs';
+import Tab from 'react-bootstrap/Tab';
 import './Projects.css';
 import ContextFunc from '../context/ContextFunc';
 import { setTemp } from '../store/tempData';
@@ -32,6 +34,12 @@ const pledge = gql`
   }
 `;
 
+const comment = gql`
+  mutation Comment($comment: Comment!) {
+    comment(comment: $comment)
+  }
+`;
+
 const Projects = () => {
   const dispatch = useDispatch();
   const projData = useSelector((state) => state.projects[0]);
@@ -39,9 +47,12 @@ const Projects = () => {
   const temp = useSelector((state) => state.temp);
   const tempUser = useSelector((state) => state.tempUser);
   const [bookMark, bookmarkOption] = useMutation(bookmark);
+  const [commentMut, commentOpt] = useMutation(comment);
   const [pleadgeFunc] = useMutation(pledge);
   const { loading, userOptions, refetch } = useContext(ContextFunc);
   const [show, setShow] = useState(false);
+  const [comm, setComm] = useState('');
+  const [show1, setShow1] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [pName, setPName] = useState('');
   const [amount, setAmount] = useState(0);
@@ -50,6 +61,51 @@ const Projects = () => {
     setShowButton(false);
     setAmount('');
   };
+  const handleComment1 = () => {
+    if (comm.length === 0) {
+      enqueueSnackbar('❗ Comment Should Not Be Empty', {
+        style: { background: 'white', color: 'red' },
+        preventDuplicate: 'true',
+        autoHideDuration: 3000,
+      });
+    } else {
+      commentMut({
+        variables: {
+          comment: {
+            comment: comm,
+            project_name: temp.project_name,
+            username: temp.username,
+          },
+        },
+      })
+        .then((res) => {
+          if (res.data.comment) {
+            enqueueSnackbar(`Commented on project ${temp.project_name}`, {
+              style: { color: 'green', background: 'white' },
+              variant: 'success',
+            });
+            refetch();
+            setShow(false);
+            setShow1(false);
+            setComm('');
+          }
+        })
+        .catch((err) => {
+          enqueueSnackbar(`❗ ${err.message}`, {
+            style: { background: 'white', color: 'red' },
+            preventDuplicate: 'true',
+            autoHideDuration: 3000,
+          });
+        });
+    }
+  };
+  const handleClose1 = () => {
+    setShow1(false);
+    setComm('');
+  };
+  useEffect(() => {
+    handleClose();
+  }, []);
   const handleShow = (project) => {
     setShow(true);
     setAmount('');
@@ -77,6 +133,34 @@ const Projects = () => {
         setShowButton((prev) => !prev);
         setAmount('');
       }
+    }
+  };
+  const handleComment = () => {
+    if (jwt.length === 0) {
+      enqueueSnackbar('❗ You Must Login First', {
+        style: { background: 'white', color: 'red' },
+        preventDuplicate: 'true',
+        autoHideDuration: 3000,
+      });
+    } else {
+      if (temp.username === tempUser.username) {
+        enqueueSnackbar('❗ You Cannot Comment On Owned Projects', {
+          style: { background: 'white', color: 'red' },
+          preventDuplicate: 'true',
+          autoHideDuration: 3000,
+        });
+      } else {
+        setShow1(true);
+      }
+    }
+  };
+  const handleFaq = () => {
+    if (jwt.length === 0) {
+      enqueueSnackbar('❗ You Must Login First', {
+        style: { background: 'white', color: 'red' },
+        preventDuplicate: 'true',
+        autoHideDuration: 3000,
+      });
     }
   };
   const handleBookMark = (project) => {
@@ -120,7 +204,8 @@ const Projects = () => {
     projData.map((project) => {
       return (
         <OverlayTrigger
-          delay={{ show: 250, hide: 200 }}
+          placement='auto'
+          delay={{ show: 250, hide: 100 }}
           project={project.project_name}
           key={project.project_id}
           onEnter={() => handleHover(project)}
@@ -167,6 +252,9 @@ const Projects = () => {
       )}
       {projects && projects}
       <Modal
+        style={{
+          maxHeight: 650,
+        }}
         show={show}
         onHide={handleClose}
         backdrop='static'
@@ -195,8 +283,39 @@ const Projects = () => {
             </li>
             <li>Amount To Reach: {temp.target_amount}</li>
             <li>Total Pledged Amount: {temp.pledge_amount}</li>
+            <li>Catagory: {temp.catagory}</li>
           </ul>
         </Modal.Body>
+        <Modal.Body>
+          <Tabs
+            defaultActiveKey='comments'
+            id='justify-tab-example'
+            className='mb-3'
+            justify
+          >
+            <Tab eventKey='comments' title='Comments'>
+              <ol>
+                {temp.comments && temp.comments.length === 0
+                  ? 'There Are No Comments For This Project Yet'
+                  : temp.comments &&
+                    temp.comments.map((comment) => (
+                      <li key={comment}>{comment}</li>
+                    ))}
+              </ol>
+            </Tab>
+            <Tab eventKey='faq' title='FAQs'>
+              Content for FAQs
+            </Tab>
+          </Tabs>
+        </Modal.Body>
+        <Modal.Footer className='justify-content-center'>
+          <Button variant='info' onClick={handleFaq}>
+            Ask A Question
+          </Button>
+          <Button variant='dark' onClick={handleComment}>
+            Comment
+          </Button>
+        </Modal.Footer>
         <Modal.Footer>
           <Button
             variant={
@@ -311,6 +430,41 @@ const Projects = () => {
               buttonType='pay'
             />
           )}
+        </Modal.Footer>
+      </Modal>
+      <Modal show={show1} onHide={handleClose1} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Comment on {temp.project_name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <Form.Group>
+              <Form.Control
+                type='text'
+                placeholder='Enter Your Comment Here'
+                value={comm}
+                onChange={(e) => {
+                  setComm(e.target.value.trimStart());
+                }}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={handleClose1}>
+            Close
+          </Button>
+          <Button variant='primary' onClick={handleComment1}>
+            {commentOpt.loading ? (
+              <Spinner size='sm' animation='border' variant='secondary' />
+            ) : (
+              'Comment'
+            )}
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>

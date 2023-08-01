@@ -7,6 +7,7 @@ import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
 import Spinner from 'react-bootstrap/Spinner';
 import Modal from 'react-bootstrap/Modal';
+import Dropdown from 'react-bootstrap/Dropdown';
 import { useSelector, useDispatch } from 'react-redux';
 import { enqueueSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
@@ -20,11 +21,22 @@ const createProject = gql`
       username
       pledge_amount
       description
+      catagory
       end_date
       image
     }
   }
 `;
+const options = [
+  { name: 'Art', id: 1 },
+  { name: 'Comics & Illustration', id: 2 },
+  { name: 'Design & Tech', id: 3 },
+  { name: 'Film', id: 4 },
+  { name: 'Food & Craft', id: 5 },
+  { name: 'Games', id: 6 },
+  { name: 'Music', id: 7 },
+  { name: 'Publishing', id: 8 },
+];
 const CreateProject = () => {
   const dispatch = useDispatch();
   const nav = useNavigate();
@@ -35,6 +47,9 @@ const CreateProject = () => {
   const { refetch } = useContext(ContextFunc);
   const [imgObj, setImgObj] = useState({});
   const [show, setShow] = useState(false);
+  const handleCatagory = (ev) => {
+    dispatch(updateField({ field: 'catagory', value: ev }));
+  };
   const handleClose = () => {
     setShow(false);
     nav('/');
@@ -97,6 +112,7 @@ const CreateProject = () => {
                 project_name: data.project_title,
                 description: data.project_description,
                 end_date: data.end_date,
+                catagory: data.catagory,
                 image: res,
                 target_amount: +data.target_amount,
               },
@@ -184,10 +200,44 @@ const CreateProject = () => {
               />
             </Form.Group>
             <hr style={{ color: 'red' }} />
+            <Form.Group style={{ opacity: '100%' }}>
+              <Form.Label>Project Catagory</Form.Label>
+              {/* dropdown here */}
+              <Dropdown>
+                <Dropdown.Toggle variant='primary' id='dropdown-basic'>
+                  Select A Catagory
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {options.map((option) => (
+                    <Dropdown.Item
+                      key={option.id}
+                      value={option.name}
+                      onClick={() => {
+                        handleCatagory(option.name);
+                      }}
+                    >
+                      {option.name}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+              <br />
+              <Form.Control
+                name='catagory'
+                disabled
+                value={data.catagory}
+                placeholder='Catagory'
+              />
+            </Form.Group>
+            <hr style={{ color: 'red' }} />
 
             <Form.Group style={{ opacity: '100%' }}>
               <Form.Label>Project Image</Form.Label>
-              <Form.Control type='file' onChange={(e) => handleUpload(e)} />
+              <Form.Control
+                type='file'
+                accept='image/*'
+                onChange={(e) => handleUpload(e)}
+              />
             </Form.Group>
             <hr style={{ color: 'red' }} />
 
@@ -219,7 +269,7 @@ const CreateProject = () => {
             <hr style={{ color: 'red' }} />
 
             <Form.Group style={{ opacity: '100%' }}>
-              {image && data && (
+              {data && (
                 <Button
                   type='reset'
                   variant='danger'
@@ -276,6 +326,15 @@ const CreateProject = () => {
                       <b>Project Description</b>
                       <br />
                       {data.project_description && data.project_description}
+                      <br />
+                    </>
+                  )}
+                  {data.catagory && (
+                    <>
+                      <br />
+                      <b>Project Catagory</b>
+                      <br />
+                      {data.catagory && data.catagory}
                       <br />
                     </>
                   )}

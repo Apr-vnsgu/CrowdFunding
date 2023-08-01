@@ -18,9 +18,11 @@ const getProjects = gql`
       target_amount
       username
       image
+      catagory
       pledge_amount
       end_date
       description
+      comments
     }
   }
 `;

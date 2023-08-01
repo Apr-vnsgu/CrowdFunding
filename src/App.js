@@ -15,6 +15,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import CreateProject from './components/CreateProject';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
+import Bookmarks from './components/Bookmarks';
+import Discover from './components/Discover';
 
 function App() {
   const router = createBrowserRouter(
@@ -23,8 +25,10 @@ function App() {
         <Route index element={<Projects />} />
         <Route path='/login' element={<Login />} />
         <Route path='/signup' element={<SignUp />} />
+        <Route path='/bookmarks' element={<Bookmarks />} />
         <Route path='/project' element={<DashBoard />} />
         <Route path='/create' element={<CreateProject />} />
+        <Route path='/discover' element={<Discover />} />
       </Route>
     )
   );

@@ -1,13 +1,14 @@
 import React from 'react';
-import { Navbar, Nav, Container, Button } from 'react-bootstrap';
+import { Navbar, Nav, Container, Button, Badge } from 'react-bootstrap';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { removeJwt } from '../store/loginSlice';
 import './Projects.css';
 import { enqueueSnackbar } from 'notistack';
 import { removeTempUser } from '../store/tempUser';
 
 const NavBarPanel = () => {
+  const nav = useNavigate();
   const dispatch = useDispatch();
   const jwt = useSelector((state) => state.jwt);
   const tempUser = useSelector((state) => state.tempUser);
@@ -33,9 +34,34 @@ const NavBarPanel = () => {
             {jwt.length !== 0 && <>{`Hello ${tempUser.user_name}!`}</>}
             {jwt.length === 0 && <>{`Hello Traveller!`}</>}
           </Navbar.Text>
+          {jwt && (
+            <Button
+              variant='light'
+              style={{
+                background: 'rgba(0,0,0,0.1)',
+                border: 0,
+                boxShadow: '0px 0px 10px 1px lightgray',
+              }}
+              onClick={() => {
+                nav('/bookmarks');
+              }}
+            >
+              Bookmarks{' '}
+              <Badge
+                bg={
+                  tempUser.bookmarks && tempUser.bookmarks.length === 0
+                    ? 'danger'
+                    : 'info'
+                }
+                style={{ borderRadius: '100%' }}
+              >
+                {tempUser.bookmarks && tempUser.bookmarks.length}
+              </Badge>
+            </Button>
+          )}
           <Nav>
             <Nav.Link
-              to='/'
+              to='/discover'
               id='navLink'
               as={Link}
               style={{

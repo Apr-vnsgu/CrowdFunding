@@ -6,3 +6,10 @@
 #navLink:hover {
   color: orange;
 }
+#bookmark:hover {
+  transform: scale(0.99);
+}
+#hover:hover {
+  color: orange;
+  transform: scale(1.01);
+}

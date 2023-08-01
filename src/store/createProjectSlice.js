@@ -5,6 +5,7 @@ const initialState = {
     project_title: '',
     project_description: '',
     target_amount: 0,
+    catagory: '',
     end_date: '',
   },
 };

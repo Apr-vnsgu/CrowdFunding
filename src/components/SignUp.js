@@ -25,73 +25,83 @@ const SignUp = () => {
   });
   const [signUser, { loading }] = useMutation(sign);
   const handleSign = () => {
-    if (user.name && user.password && user.username && user.confirmpassword) {
-      if (
-        !user.username.match(
-          /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*$/
-        )
-      ) {
-        enqueueSnackbar('❗ Username Must Be An Email', {
-          style: { background: 'white', color: 'red' },
-          preventDuplicate: 'true',
-        });
-      } else {
-        if (user.password.length < 8) {
-          enqueueSnackbar('❗ Password Must Be Longer Than 8 Characters', {
-            style: { color: 'red', background: 'white' },
+    if (/\d/.test(user.name)) {
+      enqueueSnackbar('❗ Name Must Not Have A Number', {
+        style: { background: 'white', color: 'red' },
+        preventDuplicate: 'true',
+      });
+    } else {
+      if (user.name && user.password && user.username && user.confirmpassword) {
+        if (
+          !user.username.match(
+            /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*$/
+          )
+        ) {
+          enqueueSnackbar('❗ Username Must Be An Email', {
+            style: { background: 'white', color: 'red' },
             preventDuplicate: 'true',
           });
         } else {
-          if (user.password === user.confirmpassword) {
-            //mutation goes here
-            signUser({
-              variables: {
-                createUserInput: {
-                  user_name: user.name,
-                  username: user.username,
-                  password: user.confirmpassword,
-                },
-              },
-            })
-              .then(() => {
-                enqueueSnackbar('✅ Registered Successfully, Please Login...', {
-                  style: { color: 'green', background: 'white' },
-                  preventDuplicate: 'true',
-                });
-                nav('/login');
-              })
-              .catch((err) => {
-                if (err.message.includes('duplicate key error')) {
-                  enqueueSnackbar(`❗ User Already Exists`, {
-                    style: { color: 'red', background: 'white' },
-                    preventDuplicate: 'true',
-                  });
-                } else {
-                  enqueueSnackbar(`❗ ${err.message}`, {
-                    style: { color: 'red', background: 'white' },
-                    preventDuplicate: 'true',
-                  });
-                }
-              });
-            setUser({
-              name: '',
-              username: '',
-              password: '',
-              confirmpassword: '',
-            });
-          } else {
-            enqueueSnackbar('❗ Passwords Do Not Match', {
+          if (user.password.length < 8) {
+            enqueueSnackbar('❗ Password Must Be Longer Than 8 Characters', {
               style: { color: 'red', background: 'white' },
               preventDuplicate: 'true',
             });
+          } else {
+            if (user.password === user.confirmpassword) {
+              //mutation goes here
+              signUser({
+                variables: {
+                  createUserInput: {
+                    user_name: user.name,
+                    username: user.username,
+                    password: user.confirmpassword,
+                  },
+                },
+              })
+                .then(() => {
+                  enqueueSnackbar(
+                    '✅ Registered Successfully, Please Login...',
+                    {
+                      style: { color: 'green', background: 'white' },
+                      preventDuplicate: 'true',
+                    }
+                  );
+                  nav('/login');
+                })
+                .catch((err) => {
+                  if (err.message.includes('duplicate key error')) {
+                    enqueueSnackbar(`❗ User Already Exists`, {
+                      style: { color: 'red', background: 'white' },
+                      preventDuplicate: 'true',
+                    });
+                  } else {
+                    enqueueSnackbar(`❗ ${err.message}`, {
+                      style: { color: 'red', background: 'white' },
+                      preventDuplicate: 'true',
+                    });
+                  }
+                });
+              setUser({
+                name: '',
+                username: '',
+                password: '',
+                confirmpassword: '',
+              });
+            } else {
+              enqueueSnackbar('❗ Passwords Do Not Match', {
+                style: { color: 'red', background: 'white' },
+                preventDuplicate: 'true',
+              });
+            }
           }
         }
+      } else {
+        enqueueSnackbar('❗ Make Sure All The Fields Are Not Empty', {
+          style: { color: 'red', background: 'white' },
+          preventDuplicate: 'true',
+        });
       }
-    } else {
-      enqueueSnackbar('❗ Make Sure All The Fields Are Not Empty', {
-        style: { color: 'red', background: 'white' },
-        preventDuplicate: 'true',
-      });
     }
   };
   return (
