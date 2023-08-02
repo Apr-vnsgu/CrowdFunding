@@ -9,6 +9,7 @@ import { fetchProjects } from './store/projectSlice';
 import ContextFunc from './context/ContextFunc';
 import { setJwt, removeJwt } from './store/loginSlice';
 import { removeTempUser, setTempUser } from './store/tempUser';
+import { fetchFaq } from './store/faqSlice';
 
 const getProjects = gql`
   query GetProjects {
@@ -26,6 +27,18 @@ const getProjects = gql`
     }
   }
 `;
+const getFaqs = gql`
+  query GetFaqs {
+    getFaqs {
+      id
+      project_name
+      question
+      to
+      from
+      answer
+    }
+  }
+`;
 const user = gql`
   query GetUser($username: String!) {
     getUser(username: $username) {
@@ -40,16 +53,21 @@ const user = gql`
 const RootLayout = () => {
   const jwt = useSelector((state) => state.jwt);
   const { data, loading, refetch } = useQuery(getProjects);
+  const faqs = useQuery(getFaqs);
   const [getUserFunc, userOptions] = useLazyQuery(user);
   const contextFunctions = {
     loading,
     refetch,
     userOptions,
+    faqs,
   };
   const dispatch = useDispatch();
   useEffect(() => {
     data && dispatch(fetchProjects(data.getProjects));
   }, [data, dispatch]);
+  useEffect(() => {
+    faqs.data && dispatch(fetchFaq(faqs.data.getFaqs));
+  }, [dispatch, faqs.data]);
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
     if (jwt && jwt.length !== 0) {

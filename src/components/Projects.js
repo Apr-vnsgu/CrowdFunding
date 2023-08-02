@@ -11,6 +11,7 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
+import Accordion from 'react-bootstrap/Accordion';
 import './Projects.css';
 import ContextFunc from '../context/ContextFunc';
 import { setTemp } from '../store/tempData';
@@ -33,6 +34,18 @@ const pledge = gql`
     }
   }
 `;
+const question = gql`
+  mutation WriteAQuestion($writeQuestion: FAQInput!) {
+    writeAQuestion(writeQuestion: $writeQuestion) {
+      id
+      project_name
+      question
+      to
+      from
+      answer
+    }
+  }
+`;
 
 const comment = gql`
   mutation Comment($comment: Comment!) {
@@ -45,14 +58,18 @@ const Projects = () => {
   const projData = useSelector((state) => state.projects[0]);
   const jwt = useSelector((state) => state.jwt);
   const temp = useSelector((state) => state.temp);
+  const faq = useSelector((state) => state.faq[0]);
   const tempUser = useSelector((state) => state.tempUser);
   const [bookMark, bookmarkOption] = useMutation(bookmark);
   const [commentMut, commentOpt] = useMutation(comment);
+  const [questMut, quesOpt] = useMutation(question);
   const [pleadgeFunc] = useMutation(pledge);
-  const { loading, userOptions, refetch } = useContext(ContextFunc);
+  const { loading, userOptions, refetch, faqs } = useContext(ContextFunc);
   const [show, setShow] = useState(false);
   const [comm, setComm] = useState('');
+  const [ques, setques] = useState('');
   const [show1, setShow1] = useState(false);
+  const [show2, setShow2] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [pName, setPName] = useState('');
   const [amount, setAmount] = useState(0);
@@ -60,6 +77,48 @@ const Projects = () => {
     setShow(false);
     setShowButton(false);
     setAmount('');
+  };
+  const handleQues = () => {
+    if (ques.length === 0) {
+      enqueueSnackbar('❗ Question Should Not Be Empty', {
+        style: { background: 'white', color: 'red' },
+        preventDuplicate: 'true',
+        autoHideDuration: 3000,
+      });
+    } else {
+      //do mutation
+      questMut({
+        variables: {
+          writeQuestion: {
+            project_name: temp.project_name,
+            question: ques,
+            from: tempUser.username,
+          },
+        },
+      })
+        .then((res) => {
+          if (res.data) {
+            enqueueSnackbar(
+              `Question Posted For Project ${temp.project_name}`,
+              {
+                style: { color: 'green', background: 'white' },
+                variant: 'success',
+              }
+            );
+            faqs.refetch();
+            setShow(false);
+            setShow2(false);
+            setques('');
+          }
+        })
+        .catch((err) => {
+          enqueueSnackbar(`❗ ${err.message}`, {
+            style: { background: 'white', color: 'red' },
+            preventDuplicate: 'true',
+            autoHideDuration: 3000,
+          });
+        });
+    }
   };
   const handleComment1 = () => {
     if (comm.length === 0) {
@@ -103,6 +162,9 @@ const Projects = () => {
     setShow1(false);
     setComm('');
   };
+  const handleClose2 = () => {
+    setShow2(false);
+  };
   useEffect(() => {
     handleClose();
   }, []);
@@ -115,6 +177,24 @@ const Projects = () => {
     setAmount('');
     setPName(project.project_name);
   };
+  const que = (
+    <Accordion>
+      {faq &&
+        faq.map(
+          (obj) =>
+            obj.project_name === temp.project_name && (
+              <Accordion.Item eventKey={obj.id}>
+                <Accordion.Header>
+                  Q. {obj.question}------from:- {obj.from}
+                </Accordion.Header>
+                <Accordion.Body>
+                  A. {obj.answer.length === 0 ? 'No Answers Yet' : obj.answer}
+                </Accordion.Body>
+              </Accordion.Item>
+            )
+        )}
+    </Accordion>
+  );
   const handlePledge = (project) => {
     if (jwt.length === 0) {
       enqueueSnackbar('❗ You Must Login First', {
@@ -161,6 +241,16 @@ const Projects = () => {
         preventDuplicate: 'true',
         autoHideDuration: 3000,
       });
+    } else {
+      if (temp.username === tempUser.username) {
+        enqueueSnackbar('❗ You Cannot Question On Owned Projects', {
+          style: { background: 'white', color: 'red' },
+          preventDuplicate: 'true',
+          autoHideDuration: 3000,
+        });
+      } else {
+        setShow2(true);
+      }
     }
   };
   const handleBookMark = (project) => {
@@ -304,7 +394,7 @@ const Projects = () => {
               </ol>
             </Tab>
             <Tab eventKey='faq' title='FAQs'>
-              Content for FAQs
+              {que ? que : 'Be The First To Ask A Question!'}
             </Tab>
           </Tabs>
         </Modal.Body>
@@ -460,10 +550,41 @@ const Projects = () => {
           </Button>
           <Button variant='primary' onClick={handleComment1}>
             {commentOpt.loading ? (
-              <Spinner size='sm' animation='border' variant='secondary' />
+              <Spinner size='sm' animation='border' />
             ) : (
               'Comment'
             )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={show2} onHide={handleClose2} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>For {temp.project_name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <Form.Group>
+              <Form.Control
+                type='text'
+                placeholder='Enter A Question'
+                value={ques}
+                onChange={(e) => {
+                  setques(e.target.value.trimStart());
+                }}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={handleClose2}>
+            Close
+          </Button>
+          <Button variant='primary' onClick={handleQues}>
+            {quesOpt.loading ? <Spinner size='sm' animation='border' /> : 'Ask'}
           </Button>
         </Modal.Footer>
       </Modal>

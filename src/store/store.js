@@ -7,6 +7,7 @@ import loginSlice from './loginSlice';
 import tempUserSlice from './tempUser';
 import catagorySlice from './catagorySlice';
 import catagorizedProjects from './catagorizedProjects';
+import faqSlice from './faqSlice';
 const store = configureStore({
   reducer: {
     projects: projectSlice,
@@ -17,6 +18,7 @@ const store = configureStore({
     tempUser: tempUserSlice,
     catagory: catagorySlice,
     catagorizedProjects: catagorizedProjects,
+    faq: faqSlice,
   },
 });
 

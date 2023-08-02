@@ -1,3 +1,6 @@
+/* @import '@radix-ui/colors/black-alpha.css'; */
+/* @import '@radix-ui/colors/mauve.css'; */
+/* @import '@radix-ui/colors/violet.css'; */
 .projects :hover {
   filter: brightness(105%);
   text-decoration: underline 1px solid black;
@@ -11,5 +14,12 @@
 }
 #hover:hover {
   color: orange;
+  cursor: pointer;
   transform: scale(1.01);
 }
+#div-ques:hover {
+  color: orange;
+  cursor: pointer;
+  transform: scale(1.01);
+}
+
