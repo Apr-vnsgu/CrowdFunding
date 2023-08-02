@@ -26,4 +26,10 @@ export class ProjectType {
 
   @Field()
   image: string;
+
+  @Field(() => [String], { nullable: true })
+  comments: string[];
+
+  @Field(() => String)
+  catagory: string;
 }

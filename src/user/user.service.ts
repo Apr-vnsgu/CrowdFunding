@@ -25,6 +25,9 @@ export class UserService {
       password,
       bookmarks: [],
     });
+    await this.userRepository.save(user).catch((error) => {
+      throw new Error(error);
+    });
     if (user) {
       const mailTransporter = createTransport({
         service: 'gmail',
@@ -98,7 +101,7 @@ export class UserService {
           }
         },
       );
-      return await this.userRepository.save(user);
+      return user;
     } else {
       throw new Error('User Not Registered');
     }

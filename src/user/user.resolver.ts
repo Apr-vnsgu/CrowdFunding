@@ -33,4 +33,9 @@ export class UserResolver {
   ): Promise<boolean> {
     return await this.userService.bookMarkAProject(bookMark);
   }
+
+  @Query(() => UserType)
+  async getUser(@Args('username') username: string): Promise<User> {
+    return this.userService.getUserByUsername(username);
+  }
 }

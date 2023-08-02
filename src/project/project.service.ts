@@ -11,6 +11,7 @@ import { PledgeAProject } from './pledgeProject.DTO';
 import { DeleteProject } from './deleteProjectInput';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
+import { Comment } from './commentProjectInput';
 
 @Injectable()
 export class ProjectService {
@@ -35,6 +36,7 @@ export class ProjectService {
       project_name,
       target_amount,
       username,
+      catagory,
       description,
       end_date,
       image,
@@ -48,6 +50,8 @@ export class ProjectService {
         username,
         end_date,
         image,
+        catagory,
+        comments: [],
         description: description ? description : '',
         pledge_amount: 0,
       });
@@ -103,7 +107,7 @@ export class ProjectService {
                   <div class="container">
                     <p>
                       <b>
-                          The Project ${project.project_name} was created successfully with your username ${user.username}!
+                          The Project ${project.project_name} was created successfully with your username ${user.username}. You can find it in the catagory of ${project.catagory}!
                       </b>
                     </p>
                     <p>
@@ -367,5 +371,35 @@ export class ProjectService {
         ),
     );
     return data.data.image.url;
+  }
+
+  async comment(commentInp: Comment): Promise<boolean> {
+    const { comment, project_name, username } = commentInp;
+    const user = await this.userService.getUserByUsername(username);
+    if (user) {
+      const project = await this.projectRepository.findOne({
+        where: { project_name },
+      });
+      if (project) {
+        await this.projectRepository.update(project._id, {
+          comments: [...project.comments, comment],
+        });
+        return true;
+      } else {
+        throw new Error(
+          'Project With Project Name ' + project_name + ' Not Found',
+        );
+      }
+    } else {
+      throw new Error('User With Username ' + username + ' Not Found');
+    }
+  }
+
+  async getAllProjectsByCatagory(catagory: string): Promise<Project[]> {
+    if (catagory.trim().length === 0) {
+      return await this.projectRepository.find();
+    } else {
+      return await this.projectRepository.find({ where: { catagory } });
+    }
   }
 }

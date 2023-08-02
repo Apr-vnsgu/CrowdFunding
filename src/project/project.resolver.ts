@@ -8,6 +8,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth-guard';
 import { PledgeAProject } from './pledgeProject.DTO';
 import { Interval } from '@nestjs/schedule';
 import { DeleteProject } from './deleteProjectInput';
+import { Comment } from './commentProjectInput';
 
 @Resolver()
 export class ProjectResolver {
@@ -34,6 +35,13 @@ export class ProjectResolver {
     return await this.projectService.getAllProjectsOfAUser(username);
   }
 
+  @Query(() => [ProjectType])
+  async getProjectsByCatagory(
+    @Args('catagory') catagory?: string,
+  ): Promise<Project[]> {
+    return await this.projectService.getAllProjectsByCatagory(catagory);
+  }
+
   @Mutation(() => ProjectType)
   @UseGuards(JwtAuthGuard)
   async pledgeAProject(
@@ -47,6 +55,11 @@ export class ProjectResolver {
     @Args('deleteProject') deleteProject: DeleteProject,
   ): Promise<boolean> {
     return await this.projectService.deleteProjectOfUser(deleteProject);
+  }
+
+  @Mutation(() => Boolean)
+  async comment(@Args('comment') comment: Comment): Promise<boolean> {
+    return await this.projectService.comment(comment);
   }
 
   @Query(() => Boolean)

@@ -20,4 +20,7 @@ export class CreateProjectInput {
 
   @Field(() => String)
   image: string;
+
+  @Field(() => String)
+  catagory: string;
 }

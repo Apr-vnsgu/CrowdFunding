@@ -10,6 +10,8 @@ import { User } from './user/user.entity';
 import { ProjectModule } from './project/project.module';
 import { Project } from './project/project.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { FaqModule } from './faq/faq.module';
+import { FAQ } from './faq/faq.entity';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       useNewUrlParser: true,
       useUnifiedTopology: true,
       autoLoadEntities: true,
-      entities: [User, Project],
+      entities: [User, Project, FAQ],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -34,6 +36,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     UserModule,
     AuthModule,
     ProjectModule,
+    FaqModule,
   ],
   controllers: [],
   providers: [],

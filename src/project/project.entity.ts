@@ -34,4 +34,10 @@ export class Project {
 
   @Column()
   image: string;
+
+  @Column()
+  comments: string[];
+
+  @Column()
+  catagory: string;
 }

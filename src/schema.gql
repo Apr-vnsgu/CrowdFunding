@@ -15,12 +15,23 @@ type Projects {
   description: String
   end_date: String!
   image: String!
+  comments: [String!]
+  catagory: String!
 }
 
 type loginUserObject {
   username: String!
   password: String!
   accessToken: String
+}
+
+type FAQ {
+  id: String!
+  project_name: String!
+  question: String!
+  answer: String
+  to: String!
+  from: String!
 }
 
 input UserLoginInput {
@@ -31,9 +42,13 @@ input UserLoginInput {
 
 type Query {
   getUsers: [Users!]!
+  getUser(username: String!): Users!
   getProjects: [Projects!]!
   getAllProjectsOfAUser(username: String!): [Projects!]!
+  getProjectsByCatagory(catagory: String!): [Projects!]!
   endTime: Boolean!
+  getHi: String!
+  getFaqs: [FAQ!]!
 }
 
 type Mutation {
@@ -42,7 +57,11 @@ type Mutation {
   createProject(createProjectInput: CreateProjectInput!): Projects!
   pledgeAProject(pleadge: PledgeAProject!): Projects!
   DeleteProject(deleteProject: DeleteProject!): Boolean!
+  comment(comment: Comment!): Boolean!
   userLogin(loginUserInput: UserLoginInput!): loginUserObject!
+  writeAQuestion(writeQuestion: FAQInput!): FAQ!
+  writeAnswer(writeAnswer: FAQInput!): Boolean!
+  deleteQuestions(project_name: String!): Boolean!
 }
 
 input CreateUserInput {
@@ -63,6 +82,7 @@ input CreateProjectInput {
   description: String
   end_date: String!
   image: String!
+  catagory: String!
 }
 
 input PledgeAProject {
@@ -74,4 +94,18 @@ input PledgeAProject {
 input DeleteProject {
   username: String!
   project_name: String!
+}
+
+input Comment {
+  project_name: String!
+  comment: String!
+  username: String!
+}
+
+input FAQInput {
+  id: String
+  project_name: String!
+  question: String
+  answer: String
+  from: String
 }
