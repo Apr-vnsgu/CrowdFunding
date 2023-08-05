@@ -47,6 +47,12 @@ const question = gql`
   }
 `;
 
+const like = gql`
+  mutation LikeAProject($projectName: String!, $username: String!) {
+    likeAProject(project_name: $projectName, username: $username)
+  }
+`;
+
 const comment = gql`
   mutation Comment($comment: Comment!) {
     comment(comment: $comment)
@@ -59,8 +65,10 @@ const Projects = () => {
   const jwt = useSelector((state) => state.jwt);
   const temp = useSelector((state) => state.temp);
   const faq = useSelector((state) => state.faq[0]);
+  const count = useSelector((state) => state.count);
   const tempUser = useSelector((state) => state.tempUser);
   const [bookMark, bookmarkOption] = useMutation(bookmark);
+  const [likeMut, likeOpt] = useMutation(like);
   const [commentMut, commentOpt] = useMutation(comment);
   const [questMut, quesOpt] = useMutation(question);
   const [pleadgeFunc] = useMutation(pledge);
@@ -215,6 +223,34 @@ const Projects = () => {
       }
     }
   };
+  const handleLike = () => {
+    if (jwt.length === 0) {
+      enqueueSnackbar('❗ You Must Login First', {
+        style: { background: 'white', color: 'red' },
+        preventDuplicate: 'true',
+        autoHideDuration: 3000,
+      });
+    } else {
+      likeMut({
+        variables: {
+          projectName: temp.project_name,
+          username: tempUser.username,
+        },
+      })
+        .then((res) => {
+          if (res) {
+            userOptions.refetch();
+            refetch();
+          }
+        })
+        .catch((err) => {
+          enqueueSnackbar(`❗ ${err.message}`, {
+            style: { color: 'red', background: 'white' },
+            preventDuplicate: 'true',
+          });
+        });
+    }
+  };
   const handleComment = () => {
     if (jwt.length === 0) {
       enqueueSnackbar('❗ You Must Login First', {
@@ -271,7 +307,7 @@ const Projects = () => {
       })
         .then((res) => {
           if (res) {
-            console.log(userOptions.refetch());
+            userOptions.refetch();
           }
         })
         .catch((err) => {
@@ -328,266 +364,322 @@ const Projects = () => {
       );
     });
   return (
-    <div className='card-group'>
-      {loading && (
-        <div
-          className='card align-items-center p-5'
-          style={{
-            background: 'transparent',
-            border: 0,
-          }}
-        >
-          <Spinner animation='border' variant='secondary' />
-        </div>
-      )}
-      {projects && projects}
-      <Modal
-        style={{
-          maxHeight: 650,
-        }}
-        show={show}
-        onHide={handleClose}
-        backdrop='static'
-        keyboard={false}
-        animation={true}
-        size='lg'
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>{temp.project_name}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className='card-group p-5'>
-          <img
-            alt={temp.project_name}
-            src={temp.image}
-            style={{ height: 200, width: 200, borderRadius: 100 }}
-          />
-          <ul
-            className='m-5 border-start border-5 border-danger'
-            style={{ listStyleType: 'circle' }}
-          >
-            <li>Description: {temp.description}</li>
-            <li>End Date: {temp.end_date}</li>
-            <li>
-              Owner: <a href='/'>{temp.username}</a>
-            </li>
-            <li>Amount To Reach: {temp.target_amount}</li>
-            <li>Total Pledged Amount: {temp.pledge_amount}</li>
-            <li>Catagory: {temp.catagory}</li>
-          </ul>
-        </Modal.Body>
-        <Modal.Body>
-          <Tabs
-            defaultActiveKey='comments'
-            id='justify-tab-example'
-            className='mb-3'
-            justify
-          >
-            <Tab eventKey='comments' title='Comments'>
-              <ol>
-                {temp.comments && temp.comments.length === 0
-                  ? 'There Are No Comments For This Project Yet'
-                  : temp.comments &&
-                    temp.comments.map((comment) => (
-                      <li key={comment}>{comment}</li>
-                    ))}
-              </ol>
-            </Tab>
-            <Tab eventKey='faq' title='FAQs'>
-              {que ? que : 'Be The First To Ask A Question!'}
-            </Tab>
-          </Tabs>
-        </Modal.Body>
-        <Modal.Footer className='justify-content-center'>
-          <Button variant='info' onClick={handleFaq}>
-            Ask A Question
-          </Button>
-          <Button variant='dark' onClick={handleComment}>
-            Comment
-          </Button>
-        </Modal.Footer>
-        <Modal.Footer>
-          <Button
-            variant={
-              tempUser.bookmarks &&
-              tempUser.bookmarks.includes(temp.project_name)
-                ? 'success'
-                : 'light'
-            }
+    <div>
+      <div className='d-flex justify-content-center my-4'>
+        <Card className='w-50' style={{ boxShadow: '0 2px 10px lightgray' }}>
+          <Card.Body>
+            <Card.Text className='d-flex justify-content-center'>
+              <span
+                className='mx-3 pe-5'
+                style={{ borderRight: '2px solid black' }}
+              >
+                <b style={{ color: 'darkgreen' }}>Pledged Projects: </b>
+                <u>{count.pledgedProjects}</u>
+              </span>
+              <span
+                className='mx-3 pe-5'
+                style={{ borderRight: '2px solid black' }}
+              >
+                <b style={{ color: 'darkgreen' }}>Amount Raised: </b>
+                <u>Rs.{count.pledgesAmount}</u>
+              </span>
+              <span className='mx-3 ps-4'>
+                <b style={{ color: 'darkgreen' }}>Pledges: </b>
+                <u>{count.totalPledges}</u>
+              </span>
+            </Card.Text>
+          </Card.Body>
+        </Card>
+      </div>
+      <div className='card-group'>
+        {loading && (
+          <div
+            className='card align-items-center p-5'
             style={{
-              boxShadow: '0px 0px 5px 1px lightgray',
-            }}
-            onClick={() => handleBookMark(temp)}
-          >
-            {bookmarkOption.loading ? (
-              <Spinner size='sm' animation='border' variant='secondary' />
-            ) : (
-              <>
-                {tempUser.bookmarks &&
-                tempUser.bookmarks.includes(temp.project_name)
-                  ? 'Bookmarked ✓'
-                  : 'Bookmark 📑'}
-              </>
-            )}
-          </Button>
-          <Button variant='danger' onClick={handleClose}>
-            Close
-          </Button>
-          <Button
-            variant='warning'
-            onClick={() => {
-              handlePledge(temp);
+              background: 'transparent',
+              border: 0,
             }}
           >
-            Back This Project
-          </Button>
-          {showButton && jwt && (
-            <Form>
-              <Form.Control
-                type='number'
-                value={amount}
-                placeholder='Pledge An Amount'
-                onChange={(e) => {
-                  setAmount(e.target.value);
-                }}
-                min={0}
-              />
-            </Form>
-          )}
-          {amount && jwt && (
-            <GooglePayButton
-              environment='TEST'
-              paymentRequest={{
-                apiVersion: 2,
-                apiVersionMinor: 0,
-                allowedPaymentMethods: [
-                  {
-                    type: 'CARD',
-                    parameters: {
-                      allowedAuthMethods: ['CRYPTOGRAM_3DS', 'PAN_ONLY'],
-                      allowedCardNetworks: ['VISA', 'MASTERCARD'],
-                    },
-                    tokenizationSpecification: {
-                      type: 'PAYMENT_GATEWAY',
-                      parameters: {
-                        gateway: 'example',
-                        gatewayMerchantId: 'exampleGatewayMerchantId',
-                      },
-                    },
-                  },
-                ],
-                merchantInfo: {
-                  merchantId: '12345678901234567890',
-                  merchantName: 'Apr',
-                },
-                transactionInfo: {
-                  totalPriceLabel: `The Payment is of $ ${amount}`,
-                  totalPriceStatus: 'FINAL',
-                  totalPrice: `${amount}`,
-                  countryCode: 'US',
-                  currencyCode: 'USD',
-                },
-              }}
-              onLoadPaymentData={(payment) => {
-                if (payment) {
-                  pleadgeFunc({
-                    variables: {
-                      pleadge: {
-                        pledge_amount: +amount,
-                        project_name: temp.project_name,
-                        username: tempUser.username,
-                      },
-                    },
-                  })
-                    .then((res) => {
-                      console.log(res);
-                      enqueueSnackbar('Payment Success', {
-                        variant: 'success',
-                      });
-                      refetch();
-                      setAmount('');
-                      setShow(false);
-                      setShowButton(false);
-                    })
-                    .catch((err) => {
-                      enqueueSnackbar(`❗ ${err.message}`, {
-                        style: { color: 'red', background: 'white' },
-                      });
-                    });
-                }
-              }}
-              buttonSizeMode='fill'
-              buttonType='pay'
+            <Spinner animation='border' variant='secondary' />
+          </div>
+        )}
+        {projects && projects}
+        <Modal
+          style={{
+            maxHeight: 650,
+          }}
+          show={show}
+          onHide={handleClose}
+          backdrop='static'
+          keyboard={false}
+          animation={true}
+          size='lg'
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>{temp.project_name}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body className='card-group p-5'>
+            <img
+              alt={temp.project_name}
+              src={temp.image}
+              style={{ height: 200, width: 200, borderRadius: 100 }}
             />
-          )}
-        </Modal.Footer>
-      </Modal>
-      <Modal show={show1} onHide={handleClose1} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Comment on {temp.project_name}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
-            <Form.Group>
-              <Form.Control
-                type='text'
-                placeholder='Enter Your Comment Here'
-                value={comm}
-                onChange={(e) => {
-                  setComm(e.target.value.trimStart());
-                }}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant='secondary' onClick={handleClose1}>
-            Close
-          </Button>
-          <Button variant='primary' onClick={handleComment1}>
-            {commentOpt.loading ? (
-              <Spinner size='sm' animation='border' />
-            ) : (
-              'Comment'
+            <ul
+              className='m-5 border-start border-5 border-danger'
+              style={{ listStyleType: 'circle' }}
+            >
+              <li>Description: {temp.description}</li>
+              <li>End Date: {temp.end_date}</li>
+              <li>
+                Owner: <a href='/'>{temp.username}</a>
+              </li>
+              <li>Amount To Reach: {temp.target_amount}</li>
+              <li>Total Pledged Amount: {temp.pledge_amount}</li>
+              <li>Catagory: {temp.catagory}</li>
+              <li>{'Likes: ' + temp.likes}</li>
+            </ul>
+          </Modal.Body>
+          <Modal.Body>
+            <Tabs
+              defaultActiveKey='comments'
+              id='justify-tab-example'
+              className='mb-3'
+              justify
+            >
+              <Tab eventKey='comments' title='Comments'>
+                <ol>
+                  {temp.comments && temp.comments.length === 0
+                    ? 'There Are No Comments For This Project Yet'
+                    : temp.comments &&
+                      temp.comments.map((comment) => (
+                        <li key={`${comment}`}>{comment}</li>
+                      ))}
+                </ol>
+              </Tab>
+              <Tab eventKey='faq' title='FAQs'>
+                {que ? que : 'Be The First To Ask A Question!'}
+              </Tab>
+            </Tabs>
+          </Modal.Body>
+          <Modal.Footer className='justify-content-center'>
+            <Button variant='info' onClick={handleFaq}>
+              Ask A Question
+            </Button>
+            <Button variant='dark' onClick={handleComment}>
+              Comment
+            </Button>
+            <Button
+              variant={
+                tempUser.likedProjects &&
+                tempUser.likedProjects.includes(temp.project_name)
+                  ? 'secondary'
+                  : 'light'
+              }
+              onClick={handleLike}
+            >
+              {likeOpt.loading ? (
+                <Spinner size='sm' animation='border' variant='secondary' />
+              ) : (
+                <>
+                  {tempUser.likedProjects &&
+                  tempUser.likedProjects.includes(temp.project_name)
+                    ? 'Liked ❤️'
+                    : 'Like 👍🏻'}
+                </>
+              )}
+            </Button>
+          </Modal.Footer>
+          <Modal.Footer>
+            <Button
+              variant={
+                tempUser.bookmarks &&
+                tempUser.bookmarks.includes(temp.project_name)
+                  ? 'success'
+                  : 'light'
+              }
+              style={{
+                boxShadow: '0px 0px 5px 1px lightgray',
+              }}
+              onClick={() => handleBookMark(temp)}
+            >
+              {bookmarkOption.loading ? (
+                <Spinner size='sm' animation='border' variant='secondary' />
+              ) : (
+                <>
+                  {tempUser.bookmarks &&
+                  tempUser.bookmarks.includes(temp.project_name)
+                    ? 'Bookmarked ✓'
+                    : 'Bookmark 📑'}
+                </>
+              )}
+            </Button>
+            <Button variant='danger' onClick={handleClose}>
+              Close
+            </Button>
+            <Button
+              variant='warning'
+              onClick={() => {
+                handlePledge(temp);
+              }}
+            >
+              Back This Project
+            </Button>
+            {showButton && jwt && (
+              <Form>
+                <Form.Control
+                  type='number'
+                  value={amount}
+                  placeholder='Pledge An Amount'
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                  }}
+                  min={0}
+                />
+              </Form>
             )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      <Modal show={show2} onHide={handleClose2} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>For {temp.project_name}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
-            <Form.Group>
-              <Form.Control
-                type='text'
-                placeholder='Enter A Question'
-                value={ques}
-                onChange={(e) => {
-                  setques(e.target.value.trimStart());
+            {amount && jwt && (
+              <GooglePayButton
+                environment='TEST'
+                paymentRequest={{
+                  apiVersion: 2,
+                  apiVersionMinor: 0,
+                  allowedPaymentMethods: [
+                    {
+                      type: 'CARD',
+                      parameters: {
+                        allowedAuthMethods: ['CRYPTOGRAM_3DS', 'PAN_ONLY'],
+                        allowedCardNetworks: ['VISA', 'MASTERCARD'],
+                      },
+                      tokenizationSpecification: {
+                        type: 'PAYMENT_GATEWAY',
+                        parameters: {
+                          gateway: 'example',
+                          gatewayMerchantId: 'exampleGatewayMerchantId',
+                        },
+                      },
+                    },
+                  ],
+                  merchantInfo: {
+                    merchantId: '12345678901234567890',
+                    merchantName: 'Apr',
+                  },
+                  transactionInfo: {
+                    totalPriceLabel: `The Payment is of $ ${amount}`,
+                    totalPriceStatus: 'FINAL',
+                    totalPrice: `${amount}`,
+                    countryCode: 'US',
+                    currencyCode: 'USD',
+                  },
                 }}
+                onLoadPaymentData={(payment) => {
+                  if (payment) {
+                    pleadgeFunc({
+                      variables: {
+                        pleadge: {
+                          pledge_amount: +amount,
+                          project_name: temp.project_name,
+                          username: tempUser.username,
+                        },
+                      },
+                    })
+                      .then((res) => {
+                        enqueueSnackbar(
+                          'Payment Success of Rs. ' +
+                            res.data.pledgeAProject.pledge_amount,
+                          {
+                            variant: 'success',
+                          }
+                        );
+                        refetch();
+                        setAmount('');
+                        setShow(false);
+                        setShowButton(false);
+                      })
+                      .catch((err) => {
+                        enqueueSnackbar(`❗ ${err.message}`, {
+                          style: { color: 'red', background: 'white' },
+                        });
+                      });
+                  }
+                }}
+                buttonSizeMode='fill'
+                buttonType='pay'
               />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant='secondary' onClick={handleClose2}>
-            Close
-          </Button>
-          <Button variant='primary' onClick={handleQues}>
-            {quesOpt.loading ? <Spinner size='sm' animation='border' /> : 'Ask'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+            )}
+          </Modal.Footer>
+        </Modal>
+        <Modal show={show1} onHide={handleClose1} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Comment on {temp.project_name}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <Form.Group>
+                <Form.Control
+                  type='text'
+                  placeholder='Enter Your Comment Here'
+                  value={comm}
+                  onChange={(e) => {
+                    setComm(e.target.value.trimStart());
+                  }}
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant='secondary' onClick={handleClose1}>
+              Close
+            </Button>
+            <Button variant='primary' onClick={handleComment1}>
+              {commentOpt.loading ? (
+                <Spinner size='sm' animation='border' />
+              ) : (
+                'Comment'
+              )}
+            </Button>
+          </Modal.Footer>
+        </Modal>
+        <Modal show={show2} onHide={handleClose2} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>For {temp.project_name}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <Form.Group>
+                <Form.Control
+                  type='text'
+                  placeholder='Enter A Question'
+                  value={ques}
+                  onChange={(e) => {
+                    setques(e.target.value.trimStart());
+                  }}
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant='secondary' onClick={handleClose2}>
+              Close
+            </Button>
+            <Button variant='primary' onClick={handleQues}>
+              {quesOpt.loading ? (
+                <Spinner size='sm' animation='border' />
+              ) : (
+                'Ask'
+              )}
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
     </div>
   );
 };

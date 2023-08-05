@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { gql, useLazyQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import './Projects.css';
 import Card from 'react-bootstrap/Card';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
 import { addCatagory, removeCatagory } from '../store/catagorySlice';
 import { fetchProjects, reset } from '../store/catagorizedProjects';
 const projects = gql`
@@ -41,6 +43,11 @@ const Discover = () => {
     (state) => state.catagorizedProjects[0]
   );
   const dispatch = useDispatch();
+  const [show, setShow] = useState(false);
+  const handleClose = () => {
+    setShow(false);
+    nav('/');
+  };
   useEffect(() => {
     dispatch(reset());
     dispatch(removeCatagory());
@@ -119,10 +126,34 @@ const Discover = () => {
         </Card.ImgOverlay>
       </Card>
     ));
+  useEffect(() => {
+    setShow(false);
+    if (finalProjects && finalProjects.length === 0) {
+      setShow(true);
+    }
+  }, [finalProjects, nav]);
   return (
     <div>
       {catagory ? '' : lists}
-      {finalProjects}
+      {finalProjects && finalProjects}
+      <Modal
+        show={show}
+        onHide={handleClose}
+        backdrop='static'
+        keyboard={false}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>No Result</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Looks Like There Are No Projects Of That Category Yet
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={handleClose}>
+            Go Back
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

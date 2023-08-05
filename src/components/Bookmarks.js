@@ -8,12 +8,18 @@ import Button from 'react-bootstrap/Button';
 const Bookmarks = () => {
   const nav = useNavigate();
   const [show, setShow] = useState(false);
+  const [show1, setShow1] = useState(false);
   const tempUser = useSelector((state) => state.tempUser);
   const projects = useSelector((state) => state.projects);
   const jwt = useSelector((state) => state.jwt);
   const handleShow = () => setShow(true);
+  const handleShow1 = () => setShow1(true);
   const handleClose = () => {
     setShow(false);
+    nav('/');
+  };
+  const handleClose1 = () => {
+    setShow1(false);
     nav('/');
   };
   const handleLogin = () => {
@@ -39,6 +45,11 @@ const Bookmarks = () => {
       handleShow();
     }
   }, [jwt]);
+  useEffect(() => {
+    if (tempUser.bookmarks && tempUser.bookmarks.length === 0) {
+      handleShow1();
+    }
+  }, [tempUser]);
   return (
     <div>
       {bookmarks &&
@@ -85,6 +96,22 @@ const Bookmarks = () => {
           </Modal.Footer>
         </Modal>
       )}
+      <Modal
+        show={show1}
+        onHide={handleClose1}
+        backdrop='static'
+        keyboard={false}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>BookMarks Empty</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>You Have'nt Bookmarked Any Projects</Modal.Body>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={handleClose1}>
+            Go Back
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

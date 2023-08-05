@@ -1,15 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { SnackbarProvider } from 'notistack';
 import { useQuery, gql, useLazyQuery } from '@apollo/client';
 import NavBarPanel from './components/NavBar';
-import FooterComponent from './components/FooterComponent';
 import { fetchProjects } from './store/projectSlice';
 import ContextFunc from './context/ContextFunc';
 import { setJwt, removeJwt } from './store/loginSlice';
 import { removeTempUser, setTempUser } from './store/tempUser';
 import { fetchFaq } from './store/faqSlice';
+import { setCountsTemp } from './store/countSlice';
+import FooterComponent from './components/FooterComponent';
 
 const getProjects = gql`
   query GetProjects {
@@ -20,6 +21,8 @@ const getProjects = gql`
       username
       image
       catagory
+      likes
+      pledges
       pledge_amount
       end_date
       description
@@ -46,22 +49,52 @@ const user = gql`
       user_name
       username
       bookmarks
+      likedProjects
     }
   }
 `;
 
 const RootLayout = () => {
+  const dispatch = useDispatch();
   const jwt = useSelector((state) => state.jwt);
   const { data, loading, refetch } = useQuery(getProjects);
   const faqs = useQuery(getFaqs);
   const [getUserFunc, userOptions] = useLazyQuery(user);
+  const [obj, setObj] = useState({
+    totalPledges: 0,
+    pledgesAmount: 0,
+    pledgedProjects: 0,
+  });
   const contextFunctions = {
     loading,
     refetch,
     userOptions,
     faqs,
   };
-  const dispatch = useDispatch();
+  useEffect(() => {
+    const c =
+      data &&
+      data.getProjects.map((project) => {
+        return project.pledges;
+      });
+    const d =
+      data &&
+      data.getProjects.map((project) => {
+        return project.pledge_amount;
+      });
+    setObj({
+      pledgedProjects:
+        data &&
+        data.getProjects.filter((project) => project.pledge_amount > 0).length,
+      pledgesAmount: d && d.reduce((acc, currVal) => acc + currVal, 0),
+      totalPledges: c && c.reduce((acc, currVal) => acc + currVal, 0),
+    });
+  }, [data]);
+  useEffect(() => {
+    if (obj) {
+      dispatch(setCountsTemp(obj));
+    }
+  }, [dispatch, obj]);
   useEffect(() => {
     data && dispatch(fetchProjects(data.getProjects));
   }, [data, dispatch]);

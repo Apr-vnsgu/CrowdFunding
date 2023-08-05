@@ -17,6 +17,7 @@ import Login from './components/Login';
 import SignUp from './components/SignUp';
 import Bookmarks from './components/Bookmarks';
 import Discover from './components/Discover';
+import YourProjects from './components/YourProjects';
 
 function App() {
   const router = createBrowserRouter(
@@ -29,6 +30,7 @@ function App() {
         <Route path='/project' element={<DashBoard />} />
         <Route path='/create' element={<CreateProject />} />
         <Route path='/discover' element={<Discover />} />
+        <Route path='/yourprojects' element={<YourProjects />} />
       </Route>
     )
   );

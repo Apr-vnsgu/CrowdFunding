@@ -28,8 +28,10 @@ const NavBarPanel = () => {
   const dispatch = useDispatch();
   const jwt = useSelector((state) => state.jwt);
   const faq = useSelector((state) => state.faq[0]);
+  const projs = useSelector((state) => state.projects[0]);
   const tempUser = useSelector((state) => state.tempUser);
   const [x, setX] = useState([]);
+  const [y, setY] = useState([]);
   const [answer, setAnswer] = useState('');
   const [ans, ansOpt] = useMutation(writeAns);
   const [show, setShow] = useState(false);
@@ -57,6 +59,13 @@ const NavBarPanel = () => {
       });
     }
   }, [faq, tempUser.username]);
+  useEffect(() => {
+    setY('');
+    const tempData =
+      projs &&
+      projs.filter((project) => project.username === tempUser.username);
+    setY(tempData);
+  }, [projs, tempUser.username]);
   const handleAns = (obj) => {
     if (answer.length === 0) {
       enqueueSnackbar('❗ Answer Cannot Be Empty', {
@@ -108,35 +117,55 @@ const NavBarPanel = () => {
             {jwt.length === 0 && <>{`Hello Traveller!`}</>}
           </Navbar.Text>
           {jwt && (
-            <div
-              id='div-ques'
-              style={{
-                paddingRight: 20,
-                opacity: '90%',
-              }}
-              onClick={() => {
-                nav('/bookmarks');
-              }}
-            >
-              Bookmarks{' '}
-              <Badge
-                bg={
-                  tempUser.bookmarks && tempUser.bookmarks.length === 0
-                    ? 'danger'
-                    : 'info'
-                }
-                style={{ borderRadius: '100%' }}
-              >
-                {tempUser.bookmarks && tempUser.bookmarks.length}
-              </Badge>
-            </div>
-          )}
-          <Navbar.Text>
-            {jwt && (
+            <Navbar.Text style={{ borderRight: '1px solid lightgray' }}>
               <div
                 id='div-ques'
                 style={{
                   paddingRight: 20,
+                  opacity: '90%',
+                }}
+                onClick={() => {
+                  nav('/yourprojects');
+                }}
+              >
+                Your Projects <Badge bg='dark'>{y && y.length}</Badge>
+              </div>
+            </Navbar.Text>
+          )}
+          {jwt && (
+            <Navbar.Text style={{ borderRight: '1px solid lightgray' }}>
+              <div
+                id='div-ques'
+                style={{
+                  paddingRight: 20,
+                  paddingLeft: 20,
+                  opacity: '90%',
+                }}
+                onClick={() => {
+                  nav('/bookmarks');
+                }}
+              >
+                Bookmarks{' '}
+                <Badge
+                  bg={
+                    tempUser.bookmarks && tempUser.bookmarks.length === 0
+                      ? 'danger'
+                      : 'info'
+                  }
+                  style={{ borderRadius: '100%' }}
+                >
+                  {tempUser.bookmarks && tempUser.bookmarks.length}
+                </Badge>
+              </div>
+            </Navbar.Text>
+          )}
+          {jwt && (
+            <Navbar.Text style={{ borderRight: '1px solid lightgray' }}>
+              <div
+                id='div-ques'
+                style={{
+                  paddingRight: 20,
+                  paddingLeft: 20,
                   opacity: '90%',
                 }}
                 onClick={() => {
@@ -145,8 +174,8 @@ const NavBarPanel = () => {
               >
                 Questions <Badge>{x.length}</Badge>
               </div>
-            )}
-          </Navbar.Text>
+            </Navbar.Text>
+          )}
           <Nav>
             <Nav.Link
               to='/discover'
@@ -199,7 +228,7 @@ const NavBarPanel = () => {
           <Accordion>
             {x &&
               x.map((obj) => (
-                <Accordion.Item eventKey={obj.id}>
+                <Accordion.Item eventKey={obj.id} key={obj.id}>
                   <Accordion.Header>
                     Q. {obj.question} ----for:-{obj.project_name} ------from:-{' '}
                     {obj.from}
