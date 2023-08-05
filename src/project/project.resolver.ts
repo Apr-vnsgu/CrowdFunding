@@ -62,6 +62,14 @@ export class ProjectResolver {
     return await this.projectService.comment(comment);
   }
 
+  @Mutation(() => Boolean)
+  async likeAProject(
+    @Args('project_name') project_name: string,
+    @Args('username') username: string,
+  ): Promise<boolean> {
+    return await this.projectService.likeProject(project_name, username);
+  }
+
   @Query(() => Boolean)
   async endTime(): Promise<any> {
     return this.projectService.endTime();

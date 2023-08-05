@@ -25,4 +25,7 @@ export class User {
 
   @Column({ nullable: true })
   bookmarks: string[];
+
+  @Column({ nullable: true })
+  likedProjects: string[];
 }

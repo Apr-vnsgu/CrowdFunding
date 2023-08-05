@@ -4,6 +4,7 @@ type Users {
   username: String!
   password: String!
   bookmarks: [String!]
+  likedProjects: [String!]
 }
 
 type Projects {
@@ -17,12 +18,8 @@ type Projects {
   image: String!
   comments: [String!]
   catagory: String!
-}
-
-type loginUserObject {
-  username: String!
-  password: String!
-  accessToken: String
+  likes: Float
+  pledges: Float
 }
 
 type FAQ {
@@ -32,6 +29,12 @@ type FAQ {
   answer: String
   to: String!
   from: String!
+}
+
+type loginUserObject {
+  username: String!
+  password: String!
+  accessToken: String
 }
 
 input UserLoginInput {
@@ -58,10 +61,11 @@ type Mutation {
   pledgeAProject(pleadge: PledgeAProject!): Projects!
   DeleteProject(deleteProject: DeleteProject!): Boolean!
   comment(comment: Comment!): Boolean!
-  userLogin(loginUserInput: UserLoginInput!): loginUserObject!
+  likeAProject(project_name: String!, username: String!): Boolean!
   writeAQuestion(writeQuestion: FAQInput!): FAQ!
   writeAnswer(writeAnswer: FAQInput!): Boolean!
   deleteQuestions(project_name: String!): Boolean!
+  userLogin(loginUserInput: UserLoginInput!): loginUserObject!
 }
 
 input CreateUserInput {

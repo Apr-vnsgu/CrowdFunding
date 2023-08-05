@@ -1,9 +1,11 @@
 /* eslint-disable prettier/prettier */
 import { Field, InputType } from '@nestjs/graphql';
+import { IsEmail } from 'class-validator';
 
 @InputType()
 export class CreateProjectInput {
   @Field(() => String)
+  @IsEmail()
   username: string;
 
   @Field(() => String)

@@ -17,4 +17,7 @@ export class UserType {
 
   @Field(() => [String], { nullable: true })
   bookmarks: string[];
+
+  @Field(() => [String], { nullable: true })
+  likedProjects: [];
 }

@@ -8,6 +8,6 @@ import { ProjectModule } from 'src/project/project.module';
 @Module({
   imports: [forwardRef(() => ProjectModule), TypeOrmModule.forFeature([User])],
   providers: [UserResolver, UserService],
-  exports: [UserService, UserModule],
+  exports: [UserService],
 })
 export class UserModule {}

@@ -32,4 +32,10 @@ export class ProjectType {
 
   @Field(() => String)
   catagory: string;
+
+  @Field(() => Number, { nullable: true })
+  likes: number;
+
+  @Field(() => Number, { nullable: true })
+  pledges: number;
 }

@@ -12,6 +12,7 @@ import { DeleteProject } from './deleteProjectInput';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { Comment } from './commentProjectInput';
+import { FaqService } from 'src/faq/faq.service';
 
 @Injectable()
 export class ProjectService {
@@ -20,6 +21,8 @@ export class ProjectService {
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
     private httpService: HttpService,
+    @Inject(forwardRef(() => FaqService))
+    private faqService: FaqService,
   ) {}
 
   async getProjects(): Promise<Project[]> {
@@ -51,6 +54,8 @@ export class ProjectService {
         end_date,
         image,
         catagory,
+        likes: 0,
+        pledges: 0,
         comments: [],
         description: description ? description : '',
         pledge_amount: 0,
@@ -175,6 +180,7 @@ export class ProjectService {
       const amt = project.pledge_amount + pledge_amount;
       await this.projectRepository.update(project._id, {
         pledge_amount: amt,
+        pledges: project.pledges + 1,
       });
       const curr = await this.getProjectByProjectName(project_name);
       const mailTransporter = createTransport({
@@ -330,7 +336,11 @@ export class ProjectService {
         if (use.bookmarks.includes(project_name)) {
           await this.userService.removeBookMark(use.username, project_name);
         }
+        if (use.likedProjects.includes(project_name)) {
+          await this.userService.removeProject(use.username, project_name);
+        }
       });
+      await this.faqService.deleteQuestions(project_name);
       return result.affected > 0;
     } else {
       throw new Error('You cannot delete a project you do not own!');
@@ -400,6 +410,34 @@ export class ProjectService {
       return await this.projectRepository.find();
     } else {
       return await this.projectRepository.find({ where: { catagory } });
+    }
+  }
+
+  async likeProject(project_name: string, username: string): Promise<boolean> {
+    const project = await this.getProjectByProjectName(project_name);
+    const user = await this.userService.getUserByUsername(username);
+    if (user) {
+      if (user.likedProjects.includes(project.project_name)) {
+        await this.projectRepository.update(project._id, {
+          likes: project.likes - 1,
+        });
+        await this.userService.insertLikedProject(
+          user.username,
+          project.project_name,
+        );
+        return true;
+      } else {
+        await this.projectRepository.update(project._id, {
+          likes: project.likes + 1,
+        });
+        await this.userService.insertLikedProject(
+          user.username,
+          project.project_name,
+        );
+        return true;
+      }
+    } else {
+      throw new Error('User With Username ' + username + ' Not Found');
     }
   }
 }

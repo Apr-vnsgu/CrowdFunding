@@ -22,6 +22,7 @@ export class UserService {
       user_id: uuid(),
       user_name,
       username,
+      likedProjects: [],
       password,
       bookmarks: [],
     });
@@ -165,6 +166,47 @@ export class UserService {
       await this.userRepository.update(user._id, {
         bookmarks: user.bookmarks,
       });
+    }
+  }
+
+  async removeProject(username: string, project_name: string) {
+    const project = await this.projectService.getProjectByProjectName(
+      project_name,
+    );
+    const user = await this.getUserByUsername(username);
+    if (user) {
+      await this.userRepository.update(user._id, {
+        likedProjects: user.likedProjects.filter(
+          (name) => name !== project.project_name,
+        ),
+      });
+    }
+  }
+
+  async insertLikedProject(
+    username: string,
+    project_name: string,
+  ): Promise<boolean> {
+    const project = await this.projectService.getProjectByProjectName(
+      project_name,
+    );
+    const user = await this.getUserByUsername(username);
+    if (user) {
+      if (user.likedProjects.includes(project.project_name)) {
+        await this.userRepository.update(user._id, {
+          likedProjects: user.likedProjects.filter(
+            (name) => name !== project.project_name,
+          ),
+        });
+        return true;
+      } else {
+        await this.userRepository.update(user._id, {
+          likedProjects: [...user.likedProjects, project.project_name],
+        });
+        return true;
+      }
+    } else {
+      return false;
     }
   }
 }

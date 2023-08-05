@@ -40,4 +40,10 @@ export class Project {
 
   @Column()
   catagory: string;
+
+  @Column()
+  likes: number;
+
+  @Column()
+  pledges: number;
 }
