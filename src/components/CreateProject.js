@@ -41,6 +41,7 @@ const CreateProject = () => {
   const dispatch = useDispatch();
   const nav = useNavigate();
   const image = useSelector((state) => state.image);
+  const [minDate, setMinDate] = useState('');
   const data = useSelector((state) => state.createProject.formData);
   const jwt = useSelector((state) => state.jwt);
   const tempUser = useSelector((state) => state.tempUser);
@@ -76,6 +77,18 @@ const CreateProject = () => {
       handleShow();
     }
   }, [jwt]);
+  //added this to set the minimum in date input
+  useEffect(() => {
+    const getTodayDate = () => {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    setMinDate(getTodayDate());
+  }, []);
   const handleInput = (e) => {
     const { name, value } = e.target;
     dispatch(updateField({ field: name, value }));
@@ -261,7 +274,7 @@ const CreateProject = () => {
                 value={data.end_date !== 0 && data.end_date}
                 name='end_date'
                 pattern='\d{4}-\d{2}-\d{2}'
-                min='2023-07-22'
+                min={minDate}
                 placeholder='Select End Date'
                 onChange={handleInput}
               />
@@ -279,6 +292,7 @@ const CreateProject = () => {
                     dispatch(resetField());
                     enqueueSnackbar('Reset ↻', {
                       style: { color: 'red', background: 'white' },
+                      preventDuplicate: true,
                     });
                   }}
                 >

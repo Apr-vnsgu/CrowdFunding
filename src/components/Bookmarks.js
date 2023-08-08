@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Card from 'react-bootstrap/Card';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
+import { setTemp } from '../store/tempData';
 
 const Bookmarks = () => {
   const nav = useNavigate();
+  const dispatch = useDispatch();
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
   const tempUser = useSelector((state) => state.tempUser);
@@ -25,6 +27,11 @@ const Bookmarks = () => {
   const handleLogin = () => {
     setShow(false);
     nav('/login');
+  };
+  const handleClick = (project) => {
+    nav('/');
+    //i changed this to open the clicked project on home page
+    dispatch(setTemp(project));
   };
   const bookmarks =
     projects[0] &&
@@ -58,6 +65,7 @@ const Bookmarks = () => {
             className='bg-dark text-white m-4'
             key={project.project_id}
             id='bookmark'
+            onClick={() => handleClick(project)}
           >
             <Card.Img
               src={project.image}

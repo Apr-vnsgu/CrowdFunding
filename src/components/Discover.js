@@ -6,8 +6,10 @@ import './Projects.css';
 import Card from 'react-bootstrap/Card';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
+import Spinner from 'react-bootstrap/Spinner';
 import { addCatagory, removeCatagory } from '../store/catagorySlice';
 import { fetchProjects, reset } from '../store/catagorizedProjects';
+import { setTemp } from '../store/tempData';
 const projects = gql`
   query GetProjectsByCatagory($catagory: String!) {
     getProjectsByCatagory(catagory: $catagory) {
@@ -21,6 +23,8 @@ const projects = gql`
       target_amount
       username
       catagory
+      likes
+      pledges
     }
   }
 `;
@@ -37,7 +41,7 @@ const catagories = [
 ];
 const Discover = () => {
   const nav = useNavigate();
-  const [getCatorized, { data }] = useLazyQuery(projects);
+  const [getCatorized, { data, loading }] = useLazyQuery(projects);
   const catagory = useSelector((state) => state.catagory);
   const catagorizedProjects = useSelector(
     (state) => state.catagorizedProjects[0]
@@ -101,6 +105,7 @@ const Discover = () => {
         key={project.project_id}
         id='bookmark'
         onClick={() => {
+          dispatch(setTemp(project));
           nav('/');
         }}
       >
@@ -133,7 +138,10 @@ const Discover = () => {
     }
   }, [finalProjects, nav]);
   return (
-    <div>
+    <div className='container'>
+      <div style={{ display: 'grid', placeItems: 'center' }}>
+        {loading && <Spinner animation='border' size='sm' />}
+      </div>
       {catagory ? '' : lists}
       {finalProjects && finalProjects}
       <Modal

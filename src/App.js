@@ -7,7 +7,6 @@ import {
 import { ApolloProvider } from '@apollo/client';
 import { Provider } from 'react-redux';
 import RootLayout from './RootLayout';
-import DashBoard from './components/DashBoard';
 import Projects from './components/Projects';
 import client from './graphql/client';
 import store from './store/store';
@@ -27,7 +26,6 @@ function App() {
         <Route path='/login' element={<Login />} />
         <Route path='/signup' element={<SignUp />} />
         <Route path='/bookmarks' element={<Bookmarks />} />
-        <Route path='/project' element={<DashBoard />} />
         <Route path='/create' element={<CreateProject />} />
         <Route path='/discover' element={<Discover />} />
         <Route path='/yourprojects' element={<YourProjects />} />

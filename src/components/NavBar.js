@@ -52,9 +52,11 @@ const NavBarPanel = () => {
     if (faq) {
       faq.forEach((obj) => {
         if (obj.to === tempUser.username) {
-          setX((prev) => {
-            return [...prev, obj];
-          });
+          if (obj.answer.length === 0) {
+            setX((prev) => {
+              return [...prev, obj];
+            });
+          }
         }
       });
     }

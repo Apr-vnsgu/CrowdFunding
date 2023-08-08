@@ -14,8 +14,18 @@ import Tab from 'react-bootstrap/Tab';
 import Accordion from 'react-bootstrap/Accordion';
 import './Projects.css';
 import ContextFunc from '../context/ContextFunc';
-import { setTemp } from '../store/tempData';
+import {
+  addComment,
+  addLike,
+  addPledge,
+  deleteTemp,
+  removeLike,
+  setTemp,
+} from '../store/tempData';
 import { enqueueSnackbar } from 'notistack';
+import { updateProject } from '../store/projectSlice';
+import { addFaq } from '../store/faqSlice';
+import { updateCount } from '../store/countSlice';
 
 const bookmark = gql`
   mutation BookMarkAProject($bookMark: BookMark!) {
@@ -72,7 +82,7 @@ const Projects = () => {
   const [commentMut, commentOpt] = useMutation(comment);
   const [questMut, quesOpt] = useMutation(question);
   const [pleadgeFunc] = useMutation(pledge);
-  const { loading, userOptions, refetch, faqs } = useContext(ContextFunc);
+  const { loading, userOptions } = useContext(ContextFunc);
   const [show, setShow] = useState(false);
   const [comm, setComm] = useState('');
   const [ques, setques] = useState('');
@@ -84,6 +94,7 @@ const Projects = () => {
   const handleClose = () => {
     setShow(false);
     setShowButton(false);
+    dispatch(deleteTemp());
     setAmount('');
   };
   const handleQues = () => {
@@ -113,8 +124,7 @@ const Projects = () => {
                 variant: 'success',
               }
             );
-            faqs.refetch();
-            setShow(false);
+            dispatch(addFaq(res.data.writeAQuestion));
             setShow2(false);
             setques('');
           }
@@ -151,8 +161,10 @@ const Projects = () => {
               style: { color: 'green', background: 'white' },
               variant: 'success',
             });
-            refetch();
-            setShow(false);
+            dispatch(addComment(comm));
+            dispatch(
+              updateProject({ ...temp, comments: [...temp.comments, comm] })
+            );
             setShow1(false);
             setComm('');
           }
@@ -174,8 +186,13 @@ const Projects = () => {
     setShow2(false);
   };
   useEffect(() => {
-    handleClose();
-  }, []);
+    if (temp && Object.keys(temp).length > 0) {
+      setAmount('');
+      setShow(true);
+    } else {
+      handleClose();
+    }
+  }, [temp]);
   const handleShow = (project) => {
     setShow(true);
     setAmount('');
@@ -240,7 +257,16 @@ const Projects = () => {
         .then((res) => {
           if (res) {
             userOptions.refetch();
-            refetch();
+            if (
+              tempUser.likedProjects &&
+              tempUser.likedProjects.includes(temp.project_name)
+            ) {
+              dispatch(updateProject({ ...temp, likes: temp.likes - 1 }));
+              dispatch(removeLike());
+            } else {
+              dispatch(updateProject({ ...temp, likes: temp.likes + 1 }));
+              dispatch(addLike());
+            }
           }
         })
         .catch((err) => {
@@ -374,18 +400,18 @@ const Projects = () => {
                 style={{ borderRight: '2px solid black' }}
               >
                 <b style={{ color: 'darkgreen' }}>Pledged Projects: </b>
-                <u>{count.pledgedProjects}</u>
+                {count.pledgedProjects}
               </span>
               <span
                 className='mx-3 pe-5'
                 style={{ borderRight: '2px solid black' }}
               >
                 <b style={{ color: 'darkgreen' }}>Amount Raised: </b>
-                <u>Rs.{count.pledgesAmount}</u>
+                Rs.{count.pledgesAmount}
               </span>
               <span className='mx-3 ps-4'>
                 <b style={{ color: 'darkgreen' }}>Pledges: </b>
-                <u>{count.totalPledges}</u>
+                {count.totalPledges}
               </span>
             </Card.Text>
           </Card.Body>
@@ -479,7 +505,7 @@ const Projects = () => {
               onClick={handleLike}
             >
               {likeOpt.loading ? (
-                <Spinner size='sm' animation='border' variant='secondary' />
+                <Spinner size='sm' animation='border' />
               ) : (
                 <>
                   {tempUser.likedProjects &&
@@ -529,7 +555,7 @@ const Projects = () => {
               <Form>
                 <Form.Control
                   type='number'
-                  value={amount}
+                  value={amount === 0 ? 0 : amount}
                   placeholder='Pledge An Amount'
                   onChange={(e) => {
                     setAmount(e.target.value);
@@ -591,9 +617,15 @@ const Projects = () => {
                             variant: 'success',
                           }
                         );
-                        refetch();
+                        dispatch(
+                          updateProject({
+                            ...temp,
+                            pledge_amount: temp.pledge_amount + +amount,
+                          })
+                        );
+                        dispatch(updateCount(+amount));
+                        dispatch(addPledge(+amount));
                         setAmount('');
-                        setShow(false);
                         setShowButton(false);
                       })
                       .catch((err) => {
