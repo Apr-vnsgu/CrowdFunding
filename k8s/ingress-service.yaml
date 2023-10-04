@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: 'nginx'
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+  name: backendingress
+spec:
+  rules:
+    - host: backend.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: '/graphql'
+            backend:
+              service:
+                name: crowdfunding-k8s
+                port:
+                  number: 3000

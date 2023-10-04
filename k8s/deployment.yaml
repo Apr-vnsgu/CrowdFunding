@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crowdfunding-k8s
+spec:
+  selector:
+    matchLabels:
+      app: crowdfunding-k8s
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: crowdfunding-k8s
+    spec:
+      containers:
+        - name: crowdfunding-k8s
+          image: aryarana/crowdfunding-k8s

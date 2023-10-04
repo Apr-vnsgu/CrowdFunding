@@ -1,0 +1,17 @@
+apiVersion: skaffold/v4beta6
+kind: Config
+manifests:
+  rawYaml:
+    - ./k8s/*
+build:
+  local:
+    push: false
+  artifacts:
+    - image: aryarana/crowdfunding-k8s
+      context: .
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - dest: .
+            src: 'src/**/*.ts'

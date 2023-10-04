@@ -1,0 +1,115 @@
+type Users {
+  user_id: ID!
+  user_name: String!
+  username: String!
+  password: String!
+  bookmarks: [String!]
+  likedProjects: [String!]
+}
+
+type Projects {
+  project_id: ID!
+  username: String!
+  project_name: String!
+  target_amount: Float!
+  pledge_amount: Float
+  description: String
+  end_date: String!
+  image: String!
+  comments: [String!]
+  catagory: String!
+  likes: Float
+  pledges: Float
+}
+
+type FAQ {
+  id: String!
+  project_name: String!
+  question: String!
+  answer: String
+  to: String!
+  from: String!
+}
+
+type loginUserObject {
+  username: String!
+  password: String!
+  accessToken: String
+}
+
+input UserLoginInput {
+  username: String!
+  password: String!
+  accessToken: String
+}
+
+type Query {
+  getUsers: [Users!]!
+  getUser(username: String!): Users!
+  getProjects: [Projects!]!
+  getAllProjectsOfAUser(username: String!): [Projects!]!
+  getProjectsByCatagory(catagory: String!): [Projects!]!
+  endTime: Boolean!
+  getHi: String!
+  getFaqs: [FAQ!]!
+}
+
+type Mutation {
+  createUser(createUserInput: CreateUserInput!): Users!
+  bookMarkAProject(bookMark: BookMark!): Boolean!
+  createProject(createProjectInput: CreateProjectInput!): Projects!
+  pledgeAProject(pleadge: PledgeAProject!): Projects!
+  DeleteProject(deleteProject: DeleteProject!): Boolean!
+  comment(comment: Comment!): Boolean!
+  likeAProject(project_name: String!, username: String!): Boolean!
+  writeAQuestion(writeQuestion: FAQInput!): FAQ!
+  writeAnswer(writeAnswer: FAQInput!): Boolean!
+  deleteQuestions(project_name: String!): Boolean!
+  userLogin(loginUserInput: UserLoginInput!): loginUserObject!
+}
+
+input CreateUserInput {
+  user_name: String!
+  username: String!
+  password: String!
+}
+
+input BookMark {
+  username: String!
+  project_name: String!
+}
+
+input CreateProjectInput {
+  username: String!
+  project_name: String!
+  target_amount: Float!
+  description: String
+  end_date: String!
+  image: String!
+  catagory: String!
+}
+
+input PledgeAProject {
+  username: String!
+  pledge_amount: Float!
+  project_name: String!
+}
+
+input DeleteProject {
+  username: String!
+  project_name: String!
+}
+
+input Comment {
+  project_name: String!
+  comment: String!
+  username: String!
+}
+
+input FAQInput {
+  id: String
+  project_name: String!
+  question: String
+  answer: String
+  from: String
+}
