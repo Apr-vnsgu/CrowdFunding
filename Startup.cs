@@ -2,6 +2,7 @@ using CrowdFundingGqlAndMongoIntegration.Models;
 using CrowdFundingGqlAndMongoIntegration.Mutations;
 using CrowdFundingGqlAndMongoIntegration.Queries;
 using CrowdFundingGqlAndMongoIntegration.Repository;
+using FirebaseAdmin;
 using FirebaseAdminAuthentication.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -37,6 +38,8 @@ namespace CrowdFundingGqlAndMongoIntegration
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddAuthorization();
+
+            FirebaseApp.Create();
             services.AddFirebaseAuthentication();
             services.AddControllers();
         }
