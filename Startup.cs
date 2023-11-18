@@ -1,9 +1,11 @@
+using CrowdFundingGqlAndMongoIntegration.Controllers;
 using CrowdFundingGqlAndMongoIntegration.Models;
 using CrowdFundingGqlAndMongoIntegration.Mutations;
 using CrowdFundingGqlAndMongoIntegration.Queries;
+using CrowdFundingGqlAndMongoIntegration.RabbitMq;
 using CrowdFundingGqlAndMongoIntegration.Repository;
-using FirebaseAdmin;
-using FirebaseAdminAuthentication.DependencyInjection.Extensions;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +13,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace CrowdFundingGqlAndMongoIntegration
@@ -30,17 +34,49 @@ namespace CrowdFundingGqlAndMongoIntegration
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<HandleRmq>();
             services.Configure<MongoDbSettings>(Configuration.GetSection("MongoDb"));
+            services.AddScoped<UserRepository>();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp",
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:3001") // Replace with your React app's URL
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
+            });
             services.Configure<MailSettings>(Configuration.GetSection("Credentials"));
-            services.AddSingleton<UserRepository>();
+
+            services.AddScoped<RabbitMqService>();
+            services.AddHttpContextAccessor();
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateAudience = true,
+                    ValidateIssuer = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidAudience = "http://localhost:23359/graphql",
+                    ValidIssuer = "http://localhost:23359/graphql",
+                    RequireSignedTokens = false,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("secretsecretsecret"))
+                };
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+            });
             services.AddSingleton<ProjectRepository>();
             services.AddGraphQLServer()
+                .AddAuthorization()
                 .AddQueryType<Query>()
-                .AddMutationType<Mutation>()
-                .AddAuthorization();
+                .AddMutationType<Mutation>();
 
-            FirebaseApp.Create();
-            services.AddFirebaseAuthentication();
             services.AddControllers();
         }
 
@@ -51,14 +87,14 @@ namespace CrowdFundingGqlAndMongoIntegration
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseCors("AllowReactApp");
             app.UseRouting();
+            app.UseWebSockets();
             app.UseAuthentication();
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllers();
                 endpoints.MapGraphQL();
             });
         }

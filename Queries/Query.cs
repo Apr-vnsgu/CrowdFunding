@@ -1,7 +1,9 @@
 ﻿using CrowdFundingGqlAndMongoIntegration.Models;
 using CrowdFundingGqlAndMongoIntegration.Repository;
+using HotChocolate.AspNetCore.Authorization;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace CrowdFundingGqlAndMongoIntegration.Queries
@@ -18,7 +20,6 @@ namespace CrowdFundingGqlAndMongoIntegration.Queries
 
         public async Task<List<UserType>> getUsers()
         {
-
             List<UserModel> users = await _userRepository.getUsers();
             List<UserType> userTypes = new List<UserType>();
             foreach (UserModel user in users)
@@ -37,6 +38,7 @@ namespace CrowdFundingGqlAndMongoIntegration.Queries
             return userTypes;
         }
 
+        [Authorize]
         public async Task<List<ProjectType>> getProjects()
         {
             List<ProjectModel> projects = await _projectRepository.getProjects();
