@@ -57,6 +57,7 @@ type Query {
 type Mutation {
   createUser(createUserInput: CreateUserInput!): Users!
   bookMarkAProject(bookMark: BookMark!): Boolean!
+  updatePassword(username: String!, password: String!): String
   createProject(createProjectInput: CreateProjectInput!): Projects!
   pledgeAProject(pleadge: PledgeAProject!): Projects!
   DeleteProject(deleteProject: DeleteProject!): Boolean!

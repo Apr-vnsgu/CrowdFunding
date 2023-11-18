@@ -4,7 +4,6 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: 'nginx'
     nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/use-regex: 'true'
   name: backendingress
 spec:
   rules:
@@ -12,9 +11,9 @@ spec:
       http:
         paths:
           - pathType: Prefix
-            path: '/graphql'
+            path: /graphql
             backend:
               service:
-                name: crowdfunding-k8s
+                name: crowdfunding-k8s1
                 port:
                   number: 3000

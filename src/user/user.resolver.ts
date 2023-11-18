@@ -8,10 +8,16 @@ import { UserService } from './user.service';
 import { CreateUserInput } from './createUserInput';
 import { User } from './user.entity';
 import { BookMark } from './bookMarkProject-DTO';
+import { RabbitMQPublisherService } from 'src/rabbitmq/rabbitmq.publisher.service';
+import { RabbitmqService } from 'src/rabbitmq/rabbitmq.service';
 
 @Resolver(() => UserType)
 export class UserResolver {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private readonly rabbitMqPublisher: RabbitMQPublisherService,
+    private readonly rabbitmqreceiver: RabbitmqService,
+  ) {}
 
   @Query(() => [UserType])
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -38,5 +44,25 @@ export class UserResolver {
   @Query(() => UserType)
   async getUser(@Args('username') username: string): Promise<User> {
     return this.userService.getUserByUsername(username);
+  }
+
+  @Mutation(() => String, { nullable: true })
+  @UseGuards(JwtAuthGuard)
+  async updatePassword(
+    @Args('username') username: string,
+    @Args('password') password: string,
+  ): Promise<string> {
+    const message = {
+      username,
+      password,
+    };
+    const responseFromDotNet = await this.rabbitMqPublisher.sendRequestToDotNet(
+      message,
+    );
+    if (responseFromDotNet.response === 'Password Updated Successfully!') {
+      return 'Password updated successfully';
+    } else {
+      return 'Password update failed';
+    }
   }
 }

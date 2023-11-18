@@ -12,6 +12,9 @@ import { Project } from './project/project.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FaqModule } from './faq/faq.module';
 import { FAQ } from './faq/faq.entity';
+import { RabbitmqService } from './rabbitmq/rabbitmq.service';
+import { RabbitMQModule } from '@nestjs-plus/rabbitmq';
+import { RabbitMQPublisherService } from './rabbitmq/rabbitmq.publisher.service';
 
 @Module({
   imports: [
@@ -37,8 +40,12 @@ import { FAQ } from './faq/faq.entity';
     AuthModule,
     ProjectModule,
     FaqModule,
+    RabbitMQModule.forRoot({
+      uri: 'amqp://localhost:5672',
+    }),
   ],
   controllers: [],
-  providers: [],
+  providers: [RabbitmqService, RabbitMQPublisherService],
+  exports: [RabbitmqService, RabbitMQPublisherService],
 })
 export class AppModule {}
