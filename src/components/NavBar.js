@@ -35,8 +35,11 @@ const NavBarPanel = () => {
   const [answer, setAnswer] = useState('');
   const [ans, ansOpt] = useMutation(writeAns);
   const [show, setShow] = useState(false);
+  const [show1, setShow1] = useState(false);
   const handleClose = () => setShow(false);
+  const handleClose1 = () => setShow1(false);
   const handleShow = () => setShow(true);
+  const handleShow1 = () => setShow1(true);
   const { faqs } = useContext(ContextFunc);
   const signOut = () => {
     dispatch(removeJwt());
@@ -109,14 +112,24 @@ const NavBarPanel = () => {
     >
       <Navbar collapseOnSelect expand='lg'>
         <Container fluid>
-          <Navbar.Brand href='/' as={Link}>
+          <Navbar.Brand href='/' as={Link} id='logo'>
             CrowdFunding
           </Navbar.Brand>
           <Navbar.Text
             style={{ flex: 1, display: 'flex', justifyContent: 'center' }}
           >
-            {jwt.length !== 0 && <>{`Hello ${tempUser.user_name}!`}</>}
-            {jwt.length === 0 && <>{`Hello Traveller!`}</>}
+            {jwt.length !== 0 && (
+              <div
+                id='greeting'
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  handleShow1();
+                }}
+              >{`Hello ${tempUser.user_name}!`}</div>
+            )}
+            {jwt.length === 0 && (
+              <div id='greeting-trav'>{`Hello Traveller!`}</div>
+            )}
           </Navbar.Text>
           {jwt && (
             <Navbar.Text style={{ borderRight: '1px solid lightgray' }}>
@@ -276,6 +289,23 @@ const NavBarPanel = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant='secondary' onClick={handleClose}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal
+        show={show1}
+        onHide={handleClose1}
+        backdrop='static'
+        keyboard={false}
+        animation={true}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{tempUser.user_name}'s Profile</Modal.Title>
+        </Modal.Header>
+        <Modal.Body></Modal.Body>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={handleClose1}>
             Close
           </Button>
         </Modal.Footer>

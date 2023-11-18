@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crowdfunding-frontend-k8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: web
+  template:
+    metadata:
+      labels:
+        component: web
+    spec:
+      containers:
+        - name: crowdfunding-frontend-k8s
+          image: aryarana/crowdfunding-frontend-k8s
+          ports:
+            - containerPort: 3000

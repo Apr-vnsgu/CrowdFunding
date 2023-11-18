@@ -7,6 +7,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import { enqueueSnackbar } from 'notistack';
 import { setJwt } from '../store/loginSlice';
 import { Link, useNavigate } from 'react-router-dom';
+
 const login = gql`
   mutation Mutation($loginUserInput: UserLoginInput!) {
     userLogin(loginUserInput: $loginUserInput) {

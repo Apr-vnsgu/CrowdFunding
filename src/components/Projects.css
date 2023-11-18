@@ -22,3 +22,21 @@
   cursor: pointer;
   transform: scale(1.01);
 }
+#greeting:hover {
+  color: chartreuse;
+  cursor: pointer;
+  transform: scale(1.01);
+}
+#greeting-trav:hover {
+  color: red;
+  cursor: default;
+  transform: scale(1.01);
+}
+#logo {
+  transition: 1s ease-in-out;
+}
+#logo:hover {
+  transition: 1s ease-in-out;
+  color: goldenrod;
+  transform: scale(1.05);
+}

@@ -192,6 +192,7 @@ const Projects = () => {
     } else {
       handleClose();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [temp]);
   const handleShow = (project) => {
     setShow(true);
@@ -610,13 +611,9 @@ const Projects = () => {
                       },
                     })
                       .then((res) => {
-                        enqueueSnackbar(
-                          'Payment Success of Rs. ' +
-                            res.data.pledgeAProject.pledge_amount,
-                          {
-                            variant: 'success',
-                          }
-                        );
+                        enqueueSnackbar('Payment Success of Rs. ' + amount, {
+                          variant: 'success',
+                        });
                         dispatch(
                           updateProject({
                             ...temp,

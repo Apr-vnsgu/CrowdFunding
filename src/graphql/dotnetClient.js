@@ -3,7 +3,7 @@ import { setContext } from '@apollo/client/link/context';
 
 const httpLink = createHttpLink({
   //kubernetes pod port
-  uri: 'http://localhost:3000/graphql',
+  uri: 'http://localhost:5000/graphql',
 });
 
 const authLink = setContext((_, { headers }) => {
@@ -16,9 +16,9 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
-const client = new ApolloClient({
+const dotnetClient = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 });
 
-export default client;
+export default dotnetClient;

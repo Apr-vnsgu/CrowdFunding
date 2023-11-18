@@ -3,15 +3,25 @@ import { gql, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import dotnetClient from '../graphql/dotnetClient';
 import Spinner from 'react-bootstrap/Spinner';
 import { enqueueSnackbar } from 'notistack';
+// const sign = gql`
+//   mutation CreateUser($createUserInput: CreateUserInput!) {
+//     createUser(createUserInput: $createUserInput) {
+//       user_id
+//       user_name
+//       username
+//       password
+//     }
+//   }
+// `;
 const sign = gql`
-  mutation CreateUser($createUserInput: CreateUserInput!) {
-    createUser(createUserInput: $createUserInput) {
+  mutation CreateUser($createUserInput: CreateUserDtoInput) {
+    createUser(user: $createUserInput) {
       user_id
       user_name
       username
-      password
     }
   }
 `;
@@ -23,7 +33,7 @@ const SignUp = () => {
     password: '',
     confirmpassword: '',
   });
-  const [signUser, { loading }] = useMutation(sign);
+  const [signUser, { loading }] = useMutation(sign, { client: dotnetClient });
   const handleSign = () => {
     if (/\d/.test(user.name)) {
       enqueueSnackbar('❗ Name Must Not Have A Number', {
