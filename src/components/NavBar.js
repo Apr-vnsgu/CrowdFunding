@@ -23,7 +23,16 @@ const writeAns = gql`
     writeAnswer(writeAnswer: $writeAnswer)
   }
 `;
+const updatePassword = gql`
+  mutation UpdatePassword($username: String!, $password: String!) {
+    updatePassword(username: $username, password: $password)
+  }
+`;
 const NavBarPanel = () => {
+  const [updatePwd, setPwd] = useState({
+    current: '',
+    confirm: '',
+  });
   const nav = useNavigate();
   const dispatch = useDispatch();
   const jwt = useSelector((state) => state.jwt);
@@ -34,6 +43,7 @@ const NavBarPanel = () => {
   const [y, setY] = useState([]);
   const [answer, setAnswer] = useState('');
   const [ans, ansOpt] = useMutation(writeAns);
+  const [upd, updOpt] = useMutation(updatePassword);
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
   const handleClose = () => setShow(false);
@@ -50,6 +60,10 @@ const NavBarPanel = () => {
     });
   };
   useEffect(() => {
+    setPwd({
+      current: '',
+      confirm: '',
+    });
     setAnswer('');
     setX([]);
     if (faq) {
@@ -103,6 +117,61 @@ const NavBarPanel = () => {
             style: { color: 'red', background: 'white' },
           });
         });
+    }
+  };
+  const handlePwd = (current, confirm) => {
+    if (confirm === '' || current === '') {
+      enqueueSnackbar('❗Password Updation Fields Cannot be Empty', {
+        style: { color: 'red', background: 'white' },
+        preventDuplicate: true,
+      });
+    } else if (current.length < 8) {
+      enqueueSnackbar('❗Password Must Be Atleast 8 Characters long', {
+        style: { color: 'red', background: 'white' },
+        preventDuplicate: true,
+      });
+    } else {
+      if (confirm !== current) {
+        enqueueSnackbar('❗Passwords do not match', {
+          style: { color: 'red', background: 'white' },
+          preventDuplicate: true,
+        });
+      } else {
+        upd({
+          variables: {
+            username: tempUser.username,
+            password: confirm,
+          },
+        })
+          .then((res) => {
+            if (res) {
+              enqueueSnackbar(' ↪ ' + res.data.updatePassword, {
+                style: { color: 'green', background: 'white' },
+                preventDuplicate: true,
+              });
+              setPwd({
+                current: '',
+                confirm: '',
+              });
+              handleClose1();
+              nav('/login');
+              signOut();
+              enqueueSnackbar('📃 Please Re-Login Due To Updation', {
+                style: { color: 'green', background: 'white' },
+                preventDuplicate: true,
+              });
+            }
+          })
+          .catch((err) => {
+            enqueueSnackbar('❗' + err.message, {
+              style: { color: 'red', background: 'white' },
+            });
+            setPwd({
+              current: '',
+              confirm: '',
+            });
+          });
+      }
     }
   };
   return (
@@ -303,7 +372,55 @@ const NavBarPanel = () => {
         <Modal.Header closeButton>
           <Modal.Title>{tempUser.user_name}'s Profile</Modal.Title>
         </Modal.Header>
-        <Modal.Body></Modal.Body>
+        <Modal.Body>
+          <Form>
+            <Form.Group style={{ width: 'fit-content' }}>
+              <Form.Control
+                type='password'
+                placeholder='Update Your Password'
+                onChange={(e) => {
+                  setPwd((prev) => {
+                    return {
+                      ...prev,
+                      current: e.target.value.trimStart(),
+                    };
+                  });
+                }}
+                value={updatePwd.current}
+                size='sm'
+              />
+              <br />
+              <Form.Control
+                type='password'
+                onChange={(e) => {
+                  setPwd((prev) => {
+                    return {
+                      ...prev,
+                      confirm: e.target.value.trimStart(),
+                    };
+                  });
+                }}
+                value={updatePwd.confirm}
+                placeholder='Confirm Password'
+                size='sm'
+              />
+              <br />
+              <Button
+                variant={updOpt.loading ? 'warning' : 'danger'}
+                size='sm'
+                onClick={() => {
+                  handlePwd(updatePwd.current, updatePwd.confirm);
+                }}
+              >
+                {updOpt.loading ? (
+                  <Spinner animation='border' size='sm' />
+                ) : (
+                  'Change'
+                )}
+              </Button>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
         <Modal.Footer>
           <Button variant='secondary' onClick={handleClose1}>
             Close
