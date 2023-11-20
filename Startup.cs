@@ -34,22 +34,20 @@ namespace CrowdFundingGqlAndMongoIntegration
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<HandleRmq>();
+
             services.Configure<MongoDbSettings>(Configuration.GetSection("MongoDb"));
-            services.AddScoped<UserRepository>();
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowReactApp",
                     builder =>
                     {
-                        builder.WithOrigins("http://localhost:3001") // Replace with your React app's URL
+                        builder.WithOrigins("http://localhost:3001")
                                .AllowAnyHeader()
                                .AllowAnyMethod();
                     });
             });
             services.Configure<MailSettings>(Configuration.GetSection("Credentials"));
 
-            services.AddScoped<RabbitMqService>();
             services.AddHttpContextAccessor();
             services.AddAuthentication(options =>
             {
@@ -71,11 +69,15 @@ namespace CrowdFundingGqlAndMongoIntegration
                 options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
             });
+            services.AddScoped<RabbitMqService>();
+            services.AddSingleton<UserRepository>();
             services.AddSingleton<ProjectRepository>();
+            services.AddScoped<Mutation>();
+            services.AddScoped<HandleRmq>();
             services.AddGraphQLServer()
                 .AddAuthorization()
-                .AddQueryType<Query>()
-                .AddMutationType<Mutation>();
+                .AddMutationType<Mutation>()
+                .AddQueryType<Query>();
 
             services.AddControllers();
         }

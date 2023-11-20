@@ -1,0 +1,12 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: crowdfunding-dotnetcore-k8s
+spec:
+  selector:
+    app: crowdfunding-dotnetcore-k8s
+  ports:
+    - protocol: TCP
+      port: 3000
+      nodePort: 31062
+  type: NodePort
