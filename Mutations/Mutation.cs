@@ -1,5 +1,4 @@
-﻿using Amazon.Util.Internal;
-using CrowdFundingGqlAndMongoIntegration.Models;
+﻿using CrowdFundingGqlAndMongoIntegration.Models;
 using CrowdFundingGqlAndMongoIntegration.Queries;
 using CrowdFundingGqlAndMongoIntegration.RabbitMq;
 using CrowdFundingGqlAndMongoIntegration.Repository;
@@ -63,7 +62,7 @@ namespace CrowdFundingGqlAndMongoIntegration.Mutations
                     new Claim("username", username)
                 };
                 var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                var token = new JwtSecurityToken("http://localhost:23359/graphql", "http://localhost:23359/graphql", claims, expires: DateTime.Now.AddMinutes(90), signingCredentials: signingCredentials);
+                var token = new JwtSecurityToken("http://localhost:5000/graphql", "http://localhost:5000/graphql", claims, expires: DateTime.Now.AddMinutes(90), signingCredentials: signingCredentials);
                 return new JwtSecurityTokenHandler().WriteToken(token);
             }
         }
@@ -73,7 +72,7 @@ namespace CrowdFundingGqlAndMongoIntegration.Mutations
             try
             {
                 var correlationId = Guid.NewGuid().ToString();
-                var factory = new ConnectionFactory { HostName = "localhost" };
+                var factory = new ConnectionFactory { HostName = "rabbitmq" };
                 using var connection = factory.CreateConnection();
                 using var channel = connection.CreateModel();
                 var properties = channel.CreateBasicProperties();

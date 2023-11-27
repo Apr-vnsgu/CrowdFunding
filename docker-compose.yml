@@ -1,12 +1,29 @@
-﻿version: app/v1
-services:
+﻿services:
   rabbitmq:
     image: rabbitmq
     ports:
       - "5672:5672"
+      - '4200:15672'
+  demo-frontend-react:
+    image: aryarana/demo-react-frontend:v1
+    depends_on:
+      - crowdfunding-dotnetcore
+      - demo-crowdfunding-nestjs
+    ports:
+      - "3000:3000" 
+  demo-crowdfunding-nestjs:
+    image: aryarana/demo-crowdfunding-nestjs:v3
+    depends_on:
+      - rabbitmq
+      - crowdfunding-dotnetcore
+    command:
+      ['/usr/src/app/wait-for-it.sh', 'rabbitmq:5672', '--', 'npm', 'start']
+    ports:
+      - '3001:3000'
   crowdfunding-dotnetcore:
     image: aryarana/crowdfunding-dotnetcore
     depends_on:
       - rabbitmq
+    command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "dotnet", "CrowdFundingGqlAndMongoIntegration.dll"]
     ports:
-      - "8080:80"
+      - "5000:80"

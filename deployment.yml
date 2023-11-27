@@ -1,19 +1,19 @@
 ﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: crowdfunding-dotnetcore-k8s
+  name: crowdfunding-dotnetcore
 spec:
-    selector:
-       matchLabels:
-        app: crowdfunding-dotnetcore-k8s
-    replicas: 1
-     template:
+  selector:
+    matchLabels:
+      app: crowdfunding-dotnetcore
+  replicas: 1
+  template:
     metadata:
       labels:
-        app: crowdfunding-dotnetcore-k8s
+        app: crowdfunding-dotnetcore
     spec:
       containers:
-        - name: crowdfunding-dotnetcore-k8s
-          image: aryarana/crowdfunding-dotnetcore
+        - name: crowdfunding-dotnetcore
+          image: aryarana/crowdfunding-dotnetcore-service:v1
           ports:
-            - containerPort: 3000
+            - containerPort: 80

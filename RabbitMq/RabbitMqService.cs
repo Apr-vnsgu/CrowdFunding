@@ -15,7 +15,7 @@ namespace CrowdFundingGqlAndMongoIntegration.RabbitMq
 
         public RabbitMqService()
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
+            var factory = new ConnectionFactory() { HostName = "rabbitmq" };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
         }
@@ -63,7 +63,7 @@ namespace CrowdFundingGqlAndMongoIntegration.RabbitMq
             else
             {
                 Debug.WriteLine("Connecting to rmq....");
-                var factory = new ConnectionFactory() { HostName = "localhost" };
+                var factory = new ConnectionFactory() { HostName = "rabbitmq" };
                 _connection = factory.CreateConnection();
                 Debug.WriteLine("Connected to rmq....");
                 Debug.WriteLine("Creating channel to rmq....");

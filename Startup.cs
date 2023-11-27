@@ -41,7 +41,7 @@ namespace CrowdFundingGqlAndMongoIntegration
                 options.AddPolicy("AllowReactApp",
                     builder =>
                     {
-                        builder.WithOrigins("http://localhost:3001")
+                        builder.WithOrigins("http://localhost:3000")
                                .AllowAnyHeader()
                                .AllowAnyMethod();
                     });
@@ -61,23 +61,23 @@ namespace CrowdFundingGqlAndMongoIntegration
                     ValidateAudience = true,
                     ValidateIssuer = true,
                     ValidateIssuerSigningKey = true,
-                    ValidAudience = "http://localhost:23359/graphql",
-                    ValidIssuer = "http://localhost:23359/graphql",
+                    ValidAudience = "http://localhost:5000/graphql",
+                    ValidIssuer = "http://localhost:5000/graphql",
                     RequireSignedTokens = false,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("secretsecretsecret"))
                 };
                 options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
             });
+            services.AddScoped<Mutation>();
             services.AddScoped<RabbitMqService>();
             services.AddSingleton<UserRepository>();
             services.AddSingleton<ProjectRepository>();
-            services.AddScoped<Mutation>();
             services.AddScoped<HandleRmq>();
             services.AddGraphQLServer()
                 .AddAuthorization()
-                .AddMutationType<Mutation>()
-                .AddQueryType<Query>();
+                .AddQueryType<Query>()
+            .AddMutationType<Mutation>();
 
             services.AddControllers();
         }
@@ -89,6 +89,7 @@ namespace CrowdFundingGqlAndMongoIntegration
             {
                 app.UseDeveloperExceptionPage();
             }
+
             app.UseCors("AllowReactApp");
             app.UseRouting();
             app.UseWebSockets();

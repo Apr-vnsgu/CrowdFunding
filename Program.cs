@@ -1,4 +1,5 @@
 using CrowdFundingGqlAndMongoIntegration.Controllers;
+using CrowdFundingGqlAndMongoIntegration.Mutations;
 using CrowdFundingGqlAndMongoIntegration.Repository;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ namespace CrowdFundingGqlAndMongoIntegration
             {
                 var services = scope.ServiceProvider;
                 var handleRmq = services.GetRequiredService<HandleRmq>();
+                services.GetRequiredService<Mutation>();
                 var consumerTask = Task.Run(() => handleRmq.HandleRmqMessages(cancellationTokenSource.Token));
                 await host.RunAsync();
                 cancellationTokenSource.Cancel();
