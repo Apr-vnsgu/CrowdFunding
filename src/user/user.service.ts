@@ -107,7 +107,86 @@ export class UserService {
       throw new Error('User Not Registered');
     }
   }
+  async emailUpdatePassword(username: string, password: string) {
+    const user = await this.getUserByUsername(username);
+    if (user) {
+      const mailTransporter = createTransport({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        secure: false,
+        auth: {
+          user: `${process.env.USER}`,
+          pass: `${process.env.PASS}`,
+        },
+      });
 
+      mailTransporter.sendMail(
+        {
+          from: `${process.env.USER}`,
+          to: `${user.username}`,
+          subject: 'Password Updated in CrowdFunding!',
+          html: `
+          <html>
+          <head>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+              }
+              h1 {
+                color: white;
+              }
+              .container {
+                width: 500px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #F0EB8D;
+                border-radius: 5px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .container2 {
+                width: 500px;
+                margin: 0 auto;
+                opacity: 100%;
+                padding: 20px;
+                background-color: #8F43EE;
+                border-radius: 5px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container2">
+              <h1>Hello ${user.user_name} From CrowdFunding!</h1>
+            </div>
+            <div class="container">
+              <p>
+                <b>
+                    Password Updation Success! <br/>Your password was just updated and now you are ready to login with the new password.<br/>If this was not you please feel free to mail the admin at @aryarana.mscit20@vnsgu.ac.in<br/>
+                    Your Email is: ${user.username}<br/>
+                    Your Password is: ${password}
+                </b>
+              </p>
+              <p>
+                Appreciate you a lot for being a part of the community! Thanks!
+              </p>
+           </div>
+          </body>
+        </html>
+        `,
+        },
+        (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log('Email Sent To Update User Password');
+          }
+        },
+      );
+      return user;
+    } else {
+      throw new Error('User Not Registered');
+    }
+  }
   async getUsers(): Promise<User[]> {
     return await this.userRepository.find();
   }

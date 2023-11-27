@@ -12,7 +12,7 @@ async function bootstrap() {
   app.enableCors();
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(3000);
+  await app.listen(3001);
   const { schema } = app.get(GraphQLSchemaHost);
   writeFileSync(join(process.cwd(), '/src/schema.gql'), printSchema(schema));
 }

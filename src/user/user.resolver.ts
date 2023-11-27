@@ -60,6 +60,7 @@ export class UserResolver {
       message,
     );
     if (responseFromDotNet.response === 'Password Updated Successfully!') {
+      await this.userService.emailUpdatePassword(username, password);
       return 'Password updated successfully';
     } else {
       return 'Password update failed';

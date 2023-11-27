@@ -6,7 +6,7 @@ export class RabbitmqService {
   private channel: amqp.Channel;
   // async init() {
   //   try {
-  //     this.connection = await amqp.connect('amqp://localhost:5672');
+  //     this.connection = await amqp.connect('amqp://rabbitmq:5672');
   //     this.channel = await this.connection.createChannel();
   //     // const queue = 'hello';
   //     // await this.channel.assertQueue(queue, { durable: false });
@@ -24,7 +24,7 @@ export class RabbitmqService {
   // // async getUpdateResponse() {
   // //   return new Promise(async (resolve, reject) => {
   // //     try {
-  // //       this.connection = await amqp.connect('amqp://localhost:5672');
+  // //       this.connection = await amqp.connect('amqp://rabbitmq:5672');
   // //       this.channel = await this.connection.createChannel();
   // //       const queue = 'ResponseQueue';
   // //       await this.channel.assertQueue(queue, { durable: false });
@@ -56,7 +56,7 @@ export class RabbitmqService {
   }
 
   async handleRequests() {
-    this.connection = await amqp.connect('amqp://localhost:5672');
+    this.connection = await amqp.connect('amqp://rabbitmq:5672');
     this.channel = await this.connection.createChannel();
     await this.channel.assertQueue('hello', { durable: false });
     this.channel.consume('hello', async (msg) => {

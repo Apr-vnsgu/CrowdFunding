@@ -11,7 +11,7 @@ export class RabbitMQPublisherService {
     this.connectToRabbitMQ();
   }
   async connectToRabbitMQ() {
-    this.connection = await amqp.connect('amqp://localhost:5672');
+    this.connection = await amqp.connect('amqp://rabbitmq:5672');
     this.channel = await this.connection.createChannel();
   }
 
@@ -61,13 +61,18 @@ export class RabbitMQPublisherService {
         correlationId: correlationId,
       },
     );
-    const responsePromise = new Promise<any>((resolve, reject) => {
+    const responsePromise = new Promise<any>(async (resolve, reject) => {
       const timeoutId = setTimeout(async () => {
-        reject(new Error('Timeout  waiting for response from microservice'));
+        reject(
+          new Error(
+            'There Was A Timeout Identified From Microservice, Password Should Be Updated Once The Microservice Is Up',
+          ),
+        );
         // console.log('Disconnecting from Rmq...');
         await this.closeConnection();
         // console.log('Disconnected from Rmq...');
       }, 5000);
+      await this.channel.assertQueue('ResponseQueue', { durable: false });
       this.channel.consume(responseQueue, (msg) => {
         if (msg && msg.properties.correlationId === correlationId) {
           clearTimeout(timeoutId);

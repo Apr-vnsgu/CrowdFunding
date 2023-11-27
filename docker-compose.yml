@@ -1,0 +1,14 @@
+version: '3'
+services:
+  demo-crowdfunding-nestjs:
+    image: aryarana/demo-crowdfunding-nestjs:v3
+    depends_on:
+      - rabbitmq
+    command:
+      ['/usr/src/app/wait-for-it.sh', 'rabbitmq:5672', '--', 'npm', 'start']
+    ports:
+      - '3001:3000'
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - '5672:5672'
