@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: myingress
+  name: crowdfunding-ingress-config
   annotations:
     kubernetes.io/ingress.class: 'nginx'
     nginx.ingress.kubernetes.io/use-regex: 'true'
@@ -9,13 +9,13 @@ metadata:
     # nginx.ingress.kubernetes.io/grpc-backend: 'true'
 spec:
   rules:
-    - host: crowdfunding.com
+    - host: www.crowdfunding.com
       http:
         paths:
           - path: /?(.*)
             pathType: ImplementationSpecific
             backend:
               service:
-                name: crowdfunding-frontend-k8s
+                name: crowdfunding-reactjs
                 port:
                   number: 3000

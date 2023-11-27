@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: crowdfunding-frontend-k8s
+  name: crowdfunding-reactjs
 spec:
   replicas: 1
   selector:
@@ -13,7 +13,7 @@ spec:
         component: web
     spec:
       containers:
-        - name: crowdfunding-frontend-k8s
-          image: aryarana/crowdfunding-frontend-k8s
+        - name: crowdfunding-reactjs
+          image: aryarana/crowdfunding-react-service:v1
           ports:
             - containerPort: 3000

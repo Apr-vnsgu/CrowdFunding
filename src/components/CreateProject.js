@@ -113,7 +113,7 @@ const CreateProject = () => {
     formData.append('file', imgObj);
     formData.append('project_name', 'StintStewarship');
     //port of kubernetes cluster
-    fetch('http://localhost:3000/project/upload', {
+    fetch('http://localhost:3001/project/upload', {
       method: 'POST',
       body: formData,
     })
