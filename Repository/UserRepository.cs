@@ -1,5 +1,4 @@
 ﻿using CrowdFundingGqlAndMongoIntegration.Models;
-using CrowdFundingGqlAndMongoIntegration.Mutations;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -11,6 +10,7 @@ using System.Diagnostics;
 using System.Net;
 using HotChocolate;
 using Newtonsoft.Json.Serialization;
+using CrowdFundingGqlAndMongoIntegration.Dtos;
 
 namespace CrowdFundingGqlAndMongoIntegration.Repository
 {

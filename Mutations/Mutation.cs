@@ -1,9 +1,11 @@
-﻿using CrowdFundingGqlAndMongoIntegration.Models;
+﻿using CrowdFundingGqlAndMongoIntegration.Dtos;
+using CrowdFundingGqlAndMongoIntegration.Models;
 using CrowdFundingGqlAndMongoIntegration.Queries;
 using CrowdFundingGqlAndMongoIntegration.RabbitMq;
 using CrowdFundingGqlAndMongoIntegration.Repository;
+using CrowdFundingGqlAndMongoIntegration.Subscriptions;
 using HotChocolate;
-using Microsoft.AspNetCore.Mvc;
+using HotChocolate.Subscriptions;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -21,11 +23,13 @@ namespace CrowdFundingGqlAndMongoIntegration.Mutations
     public class Mutation
     {
         private readonly UserRepository _userRepository;
+        private readonly MessageRepository _messageRepository;
         private readonly RabbitMqService _rabbitMqService;
-        public Mutation(UserRepository userRepository, RabbitMqService rabbitMqService)
+        public Mutation(UserRepository userRepository, RabbitMqService rabbitMqService, MessageRepository messageRepository)
         {
             _userRepository = userRepository;
             _rabbitMqService = rabbitMqService ?? throw new ArgumentNullException(nameof(rabbitMqService));
+            _messageRepository = messageRepository;
         }
         public async Task<UserType> createUser(CreateUserDto user)
         {
@@ -41,6 +45,31 @@ namespace CrowdFundingGqlAndMongoIntegration.Mutations
                 user_name = userModel.user_name
             };
             return userType;
+        }
+
+        public async Task<MessageModel> writeMessage(CreateMessageDto message, [Service] ITopicEventSender topicEventSender)
+        {
+            MessageModel messageModel = await _messageRepository.writeMessage(message);
+            if (messageModel != null)
+            {
+                await topicEventSender.SendAsync(nameof(Subscription.MessageAction), message.receiverId);
+            }
+            return messageModel;
+        }
+
+        public async Task<bool> readMessages(string sender, string receiver)
+        {
+            return await _messageRepository.readReceivedMessages(sender, receiver);
+        }
+
+        public async Task<string> deleteMessages([Service] ITopicEventSender topicEventSender, string receiverId)
+        {
+            var message = await _messageRepository.deleteMessages();
+            if (message != null)
+            {
+                await topicEventSender.SendAsync(nameof(Subscription.MessageAction), receiverId);
+            };
+            return message;
         }
 
         public async Task<string> updatePassword(string username, string password)
@@ -67,12 +96,13 @@ namespace CrowdFundingGqlAndMongoIntegration.Mutations
             }
         }
 
+
         public string rabbitmq(string username, string password)
         {
             try
             {
                 var correlationId = Guid.NewGuid().ToString();
-                var factory = new ConnectionFactory { HostName = "rabbitmq" };
+                var factory = new ConnectionFactory { HostName = "localhost" };
                 using var connection = factory.CreateConnection();
                 using var channel = connection.CreateModel();
                 var properties = channel.CreateBasicProperties();

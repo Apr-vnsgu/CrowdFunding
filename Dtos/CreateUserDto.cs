@@ -1,4 +1,4 @@
-﻿namespace CrowdFundingGqlAndMongoIntegration.Mutations
+﻿namespace CrowdFundingGqlAndMongoIntegration.Dtos
 {
     public class CreateUserDto
     {

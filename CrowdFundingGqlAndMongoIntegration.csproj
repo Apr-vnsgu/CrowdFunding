@@ -7,8 +7,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="HotChocolate.AspNetCore" Version="11.3.8" />
-		<PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="11.3.8" />
+		<PackageReference Include="HotChocolate.AspNetCore" Version="13.7.0" />
+		<PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="13.7.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.32" />
 		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.5.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.4" />

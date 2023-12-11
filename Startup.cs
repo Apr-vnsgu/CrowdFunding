@@ -4,6 +4,7 @@ using CrowdFundingGqlAndMongoIntegration.Mutations;
 using CrowdFundingGqlAndMongoIntegration.Queries;
 using CrowdFundingGqlAndMongoIntegration.RabbitMq;
 using CrowdFundingGqlAndMongoIntegration.Repository;
+using CrowdFundingGqlAndMongoIntegration.Subscriptions;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -42,6 +43,7 @@ namespace CrowdFundingGqlAndMongoIntegration
                     builder =>
                     {
                         builder.WithOrigins("http://localhost:3000")
+                               .AllowAnyOrigin()
                                .AllowAnyHeader()
                                .AllowAnyMethod();
                     });
@@ -73,18 +75,42 @@ namespace CrowdFundingGqlAndMongoIntegration
             services.AddScoped<RabbitMqService>();
             services.AddSingleton<UserRepository>();
             services.AddSingleton<ProjectRepository>();
+            services.AddSingleton<MessageRepository>();
             services.AddScoped<HandleRmq>();
             services.AddGraphQLServer()
-                .AddAuthorization()
                 .AddQueryType<Query>()
-            .AddMutationType<Mutation>();
-
+            .AddMutationType<Mutation>()
+            .AddSubscriptionType<Subscription>()
+            .AddInMemorySubscriptions();
             services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.Use((context, next) =>
+            {
+                if (context.WebSockets.IsWebSocketRequest)
+                {
+                    var allowedOrigins = new[] { "http://localhost:3000" };
+                    var origin = context.Request.Headers["Origin"].ToString();
+
+                    if (allowedOrigins.Contains(origin))
+                    {
+                        context.Response.Headers.Add("Access-Control-Allow-Origin", origin);
+                        // Note: Add any other necessary CORS headers here if needed
+                    }
+
+                    // Handle WebSocket request
+                    // You might want to perform additional logic here if needed
+
+                    return Task.CompletedTask; // Important: Return immediately for WebSocket requests
+                }
+
+                return next();
+            });
+
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

@@ -1,8 +1,12 @@
 ﻿using CrowdFundingGqlAndMongoIntegration.Models;
 using CrowdFundingGqlAndMongoIntegration.Repository;
+using CrowdFundingGqlAndMongoIntegration.Subscriptions;
+using HotChocolate;
 using HotChocolate.AspNetCore.Authorization;
+using HotChocolate.Subscriptions;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -12,10 +16,12 @@ namespace CrowdFundingGqlAndMongoIntegration.Queries
     {
         private readonly UserRepository _userRepository;
         private readonly ProjectRepository _projectRepository;
-        public Query(UserRepository userRepository, ProjectRepository projectRepository)
+        private readonly MessageRepository _messageRepository;
+        public Query(UserRepository userRepository, ProjectRepository projectRepository, MessageRepository messageRepository)
         {
             _userRepository = userRepository;
             _projectRepository = projectRepository;
+            _messageRepository = messageRepository;
         }
 
         public async Task<List<UserType>> getUsers()
@@ -38,7 +44,16 @@ namespace CrowdFundingGqlAndMongoIntegration.Queries
             return userTypes;
         }
 
-        [Authorize]
+        public async Task<bool> getReceiverMessages(string receiverId, [Service] ITopicEventSender topicEventSender)
+        {
+            await topicEventSender.SendAsync(nameof(Subscription.MessageAction), receiverId);
+            return true;
+        }
+
+        public async Task<List<MessageModel>> getMessagesOfSenderReceiver(string sender, string receiver)
+        {
+            return await _messageRepository.getMessagesOfSenderReceiver(sender, receiver);
+        }
         public async Task<List<ProjectType>> getProjects()
         {
             List<ProjectModel> projects = await _projectRepository.getProjects();
