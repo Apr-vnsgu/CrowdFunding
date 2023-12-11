@@ -12,6 +12,7 @@ import client from './graphql/client';
 import store from './store/store';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CreateProject from './components/CreateProject';
+import 'react-chat-elements/dist/main.css';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import Bookmarks from './components/Bookmarks';

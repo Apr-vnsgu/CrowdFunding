@@ -34,7 +34,6 @@ const tempData = createSlice({
       };
     },
     addComment(state, action) {
-      console.log(action.payload);
       return {
         ...state,
         comments: [...state.comments, action.payload],

@@ -22,10 +22,16 @@
   cursor: pointer;
   transform: scale(1.01);
 }
+#greeting {
+  padding-top: 2px;
+}
 #greeting:hover {
   color: chartreuse;
   cursor: pointer;
   transform: scale(1.01);
+}
+#greeting-trav {
+  padding-top: 2px;
 }
 #greeting-trav:hover {
   color: red;
@@ -39,4 +45,24 @@
   transition: 1s ease-in-out;
   color: goldenrod;
   transform: scale(1.05);
+}
+.contains-mess {
+  animation: shake 1s infinite;
+  color: red;
+  display: inline-block;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(2) rotate(0deg); /* Start and end position */
+  }
+  25% {
+    transform: translateX(-2px) rotate(-5deg); /* Shaking left and rotating */
+  }
+  50% {
+    transform: translateX(2px) rotate(5deg); /* Shaking right and rotating */
+  }
+  75% {
+    transform: translateX(-2px) rotate(-5deg); /* Shaking left and rotating */
+  }
 }

@@ -9,6 +9,7 @@ import catagorySlice from './catagorySlice';
 import catagorizedProjects from './catagorizedProjects';
 import faqSlice from './faqSlice';
 import countSlice from './countSlice';
+import messagesSlice from './messagesSlice';
 const store = configureStore({
   reducer: {
     projects: projectSlice,
@@ -21,6 +22,7 @@ const store = configureStore({
     catagorizedProjects: catagorizedProjects,
     faq: faqSlice,
     count: countSlice,
+    messages: messagesSlice,
   },
 });
 

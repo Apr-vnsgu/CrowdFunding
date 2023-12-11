@@ -26,6 +26,7 @@ import { enqueueSnackbar } from 'notistack';
 import { updateProject } from '../store/projectSlice';
 import { addFaq } from '../store/faqSlice';
 import { updateCount } from '../store/countSlice';
+import dotnetClient from '../graphql/dotnetClient';
 
 const bookmark = gql`
   mutation BookMarkAProject($bookMark: BookMark!) {
@@ -41,6 +42,20 @@ const pledge = gql`
       target_amount
       username
       pledge_amount
+    }
+  }
+`;
+const writeMessage = gql`
+  mutation WriteMessage($message: CreateMessageDtoInput) {
+    writeMessage(message: $message) {
+      _id
+      __typename
+      message_id
+      senderId
+      receiverId
+      content
+      timestamp
+      isRead
     }
   }
 `;
@@ -87,10 +102,15 @@ const Projects = () => {
   const [comm, setComm] = useState('');
   const [ques, setques] = useState('');
   const [show1, setShow1] = useState(false);
+  const [messageBox, setMessageBox] = useState(false);
   const [show2, setShow2] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [pName, setPName] = useState('');
   const [amount, setAmount] = useState(0);
+  const [message, setMessage] = useState('');
+  const [writeMess, writeMessOpt] = useMutation(writeMessage, {
+    client: dotnetClient,
+  });
   const handleClose = () => {
     setShow(false);
     setShowButton(false);
@@ -185,6 +205,10 @@ const Projects = () => {
   const handleClose2 = () => {
     setShow2(false);
   };
+  const handleMessageBoxClose = () => {
+    setMessageBox(false);
+    setMessage('');
+  };
   useEffect(() => {
     if (temp && Object.keys(temp).length > 0) {
       setAmount('');
@@ -209,7 +233,7 @@ const Projects = () => {
         faq.map(
           (obj) =>
             obj.project_name === temp.project_name && (
-              <Accordion.Item eventKey={obj.id}>
+              <Accordion.Item eventKey={obj.id} key={obj.id}>
                 <Accordion.Header>
                   Q. {obj.question}------from:- {obj.from}
                 </Accordion.Header>
@@ -511,11 +535,22 @@ const Projects = () => {
                 <>
                   {tempUser.likedProjects &&
                   tempUser.likedProjects.includes(temp.project_name)
-                    ? 'Liked ❤️'
-                    : 'Like 👍🏻'}
+                    ? `Liked ❤️ ${temp.likes}`
+                    : `Like 👍🏻 ${temp.likes}`}
                 </>
               )}
             </Button>
+            {/* here the user can send a message to owner but only if he/she is logged in */}
+            {jwt && (
+              <Button
+                variant='warning'
+                onClick={(e) => {
+                  setMessageBox(true);
+                }}
+              >
+                Message Owner
+              </Button>
+            )}
           </Modal.Footer>
           <Modal.Footer>
             <Button
@@ -705,6 +740,82 @@ const Projects = () => {
               ) : (
                 'Ask'
               )}
+            </Button>
+          </Modal.Footer>
+        </Modal>
+        <Modal show={messageBox} onHide={handleMessageBoxClose} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>For {temp.project_name}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <Form.Group>
+                <Form.Control
+                  type='text'
+                  placeholder='Enter Your Message Here....'
+                  value={message}
+                  onChange={(e) => {
+                    setMessage(e.target.value.trimStart());
+                  }}
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant='primary'
+              onClick={(e) => {
+                e.preventDefault();
+                if (message !== '') {
+                  writeMess({
+                    variables: {
+                      message: {
+                        senderId: tempUser.username,
+                        receiverId: temp.username,
+                        content: message,
+                      },
+                    },
+                  })
+                    .then((data) => {
+                      if (data) {
+                        enqueueSnackbar('✅ Message Sent To The Owner', {
+                          style: { background: 'white', color: 'green' },
+                          preventDuplicate: 'true',
+                          autoHideDuration: 3000,
+                        });
+                        setMessageBox(false);
+                        setMessage('');
+                      }
+                    })
+                    .catch((err) => {
+                      enqueueSnackbar(`❗ Message Not Sent! ${err.message}`, {
+                        style: { background: 'white', color: 'red' },
+                        preventDuplicate: 'true',
+                        autoHideDuration: 3000,
+                      });
+                      setMessage('');
+                    });
+                } else {
+                  enqueueSnackbar('❗ Message Should Not Be Empty', {
+                    style: { background: 'white', color: 'red' },
+                    preventDuplicate: 'true',
+                    autoHideDuration: 3000,
+                  });
+                }
+              }}
+            >
+              {writeMessOpt.loading ? (
+                <Spinner size='sm' animation='border' />
+              ) : (
+                'Send'
+              )}
+            </Button>
+            <Button variant='secondary' onClick={handleMessageBoxClose}>
+              Close
             </Button>
           </Modal.Footer>
         </Modal>

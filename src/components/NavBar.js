@@ -7,20 +7,72 @@ import {
   Badge,
   Modal,
   Accordion,
+  Offcanvas,
   Form,
   Spinner,
 } from 'react-bootstrap';
+import { MessageBox, ChatList } from 'react-chat-elements';
 import ContextFunc from '../context/ContextFunc';
-import { gql, useMutation } from '@apollo/client';
+import {
+  gql,
+  useMutation,
+  useSubscription,
+  useLazyQuery,
+} from '@apollo/client';
 import { useSelector, useDispatch } from 'react-redux';
+import { BsBell } from 'react-icons/bs';
 import { Link, useNavigate } from 'react-router-dom';
 import { removeJwt } from '../store/loginSlice';
 import './Projects.css';
 import { enqueueSnackbar } from 'notistack';
 import { removeTempUser } from '../store/tempUser';
+import dotnetClient from '../graphql/dotnetClient';
+import { deleteAllMessages, populateMessages } from '../store/messagesSlice';
 const writeAns = gql`
   mutation WriteAnswer($writeAnswer: FAQInput!) {
     writeAnswer(writeAnswer: $writeAnswer)
+  }
+`;
+const deleteMessage = gql`
+  mutation DeleteMessages($receiverId: String) {
+    deleteMessages(receiverId: $receiverId)
+  }
+`;
+const writeMessage = gql`
+  mutation WriteMessage($message: CreateMessageDtoInput) {
+    writeMessage(message: $message) {
+      _id
+      __typename
+      message_id
+      senderId
+      receiverId
+      content
+      timestamp
+      isRead
+    }
+  }
+`;
+const getMessages = gql`
+  query GetAllMessagesOfReceiver($receiverId: String) {
+    getReceiverMessages(receiverId: $receiverId)
+  }
+`;
+const readMessages = gql`
+  mutation ReadMessages($receiver: String, $sender: String) {
+    readMessages(receiver: $receiver, sender: $sender)
+  }
+`;
+const loadMessages = gql`
+  subscription MessageAction {
+    messageAction {
+      _id
+      content
+      isRead
+      message_id
+      receiverId
+      senderId
+      timestamp
+    }
   }
 `;
 const updatePassword = gql`
@@ -39,26 +91,91 @@ const NavBarPanel = () => {
   const faq = useSelector((state) => state.faq[0]);
   const projs = useSelector((state) => state.projects[0]);
   const tempUser = useSelector((state) => state.tempUser);
+  const messages = useSelector((state) => state.messages);
   const [x, setX] = useState([]);
   const [y, setY] = useState([]);
+  const [notif, setnotif] = useState('');
   const [answer, setAnswer] = useState('');
+  const [optMessages, setOptMessages] = useState([]);
   const [ans, ansOpt] = useMutation(writeAns);
   const [upd, updOpt] = useMutation(updatePassword);
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
+  const [textMes, setTextMes] = useState('');
+  const [getMessagesFunc, { refetch }] = useLazyQuery(getMessages, {
+    client: dotnetClient,
+  });
+  const [delMessages] = useMutation(deleteMessage, {
+    client: dotnetClient,
+  });
+  const [readMess] = useMutation(readMessages, {
+    client: dotnetClient,
+  });
+  const messageSubsciption = useSubscription(loadMessages, {
+    client: dotnetClient,
+  });
+  const [writeMess, writeMessOpt] = useMutation(writeMessage, {
+    client: dotnetClient,
+  });
+  // You can copy and paste this array where needed in your code
+  const [messageShow, setMessageShow] = useState(false);
+  const [dmShow, setdmShow] = useState(false);
+  const [recipient, setRecipient] = useState();
   const handleClose = () => setShow(false);
   const handleClose1 = () => setShow1(false);
+  const messageClose = () =>
+    setMessageShow((prev) => {
+      setnotif('');
+      return !prev;
+    });
+  const dmToggle = () => {
+    delMessages({
+      variables: {
+        receiverId: tempUser.username,
+      },
+    });
+    setRecipient({});
+    //here the dm messages should be deleted when this dm box is closed
+    setdmShow(false);
+  };
+  const showDm = (recepient) => {
+    setdmShow(true);
+    setRecipient(recepient);
+    //here add the messages and sort them based on time, it should have the user as well as the owner's messages shown and should be updated in real time
+  };
   const handleShow = () => setShow(true);
   const handleShow1 = () => setShow1(true);
   const { faqs } = useContext(ContextFunc);
   const signOut = () => {
     dispatch(removeJwt());
     dispatch(removeTempUser());
+    dispatch(deleteAllMessages());
+    setOptMessages([]);
     localStorage.removeItem('jwt');
     enqueueSnackbar('✅ Signed Out', {
       style: { background: 'white', color: 'green' },
     });
   };
+  useEffect(() => {
+    if (tempUser?.username) {
+      getMessagesFunc({
+        variables: {
+          receiverId: tempUser.username,
+        },
+      });
+      refetch();
+    }
+  }, [getMessagesFunc, tempUser.username, tempUser, jwt, refetch]);
+  useEffect(() => {
+    if (tempUser.username) {
+      dispatch(populateMessages(messageSubsciption?.data?.messageAction));
+    }
+  }, [
+    dispatch,
+    messageSubsciption,
+    messageSubsciption?.data,
+    tempUser.username,
+  ]);
   useEffect(() => {
     setPwd({
       current: '',
@@ -78,6 +195,36 @@ const NavBarPanel = () => {
       });
     }
   }, [faq, tempUser.username]);
+  useEffect(() => {
+    if (messages.length !== 0 && messages[0]) {
+      const mes = messages[0].reduce((grouped, message) => {
+        const senderId = message.senderId;
+
+        // Check if senderId is already a key in grouped object
+        if (!grouped[senderId]) {
+          // If not, create a new key with an array containing the first message
+          grouped[senderId] = [message];
+        } else {
+          // If yes, push the current message to the existing array
+          grouped[senderId].push(message);
+        }
+        return grouped;
+      }, []);
+      setOptMessages(mes);
+    }
+  }, [messages]);
+  useEffect(() => {
+    if (Object.keys(optMessages).length !== 0) {
+      if (
+        Object.keys(optMessages).filter((keys) => keys !== tempUser.username)
+          .length !== 0
+      ) {
+        setnotif('contains-mess');
+      } else {
+        setnotif('');
+      }
+    }
+  }, [optMessages, tempUser.username]);
   useEffect(() => {
     setY('');
     const tempData =
@@ -194,7 +341,17 @@ const NavBarPanel = () => {
                 onClick={() => {
                   handleShow1();
                 }}
-              >{`Hello ${tempUser.user_name}!`}</div>
+              >
+                {`Hello ${tempUser.user_name}!`}
+              </div>
+            )}
+            {jwt.length !== 0 && (
+              <Link
+                onClick={messageClose}
+                style={{ paddingLeft: 10, opacity: '70%' }}
+              >
+                <BsBell className={notif ? notif : ''} />
+              </Link>
             )}
             {jwt.length === 0 && (
               <div id='greeting-trav'>{`Hello Traveller!`}</div>
@@ -423,6 +580,148 @@ const NavBarPanel = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant='secondary' onClick={handleClose1}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Offcanvas show={messageShow} onHide={messageClose} backdrop='static'>
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Your Messages</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+          {Object.keys(optMessages).length !== 0 ? (
+            <ChatList
+              className='chat-list'
+              dataSource={Object.keys(optMessages)
+                .map((key) => {
+                  return {
+                    avatar: key === tempUser.username ? null : null,
+                    title: key === tempUser.username ? null : key,
+                    subtitle:
+                      key === tempUser.username
+                        ? null
+                        : optMessages[key][optMessages[key].length - 1].content,
+                    unread:
+                      key === tempUser.username
+                        ? null
+                        : optMessages[key].length,
+                  };
+                })
+                .filter((arr) => arr.title !== null)}
+              //from here add a modal which will display the messages from a single sender and render all the messages from there
+              //one error you made is, you are only receiving messages for yourseld and not the messages you will be sending which will be a problem while rendering the chats in the dm, so work on that part
+              onClick={(recepient) => {
+                readMess({
+                  variables: {
+                    receiver: tempUser.username,
+                    sender: recepient.title,
+                  },
+                });
+                showDm(recepient);
+              }}
+            />
+          ) : (
+            <h4>No Messages Yet</h4>
+          )}
+        </Offcanvas.Body>
+      </Offcanvas>
+      <Modal
+        show={dmShow}
+        onHide={dmToggle}
+        centered
+        backdrop='static'
+        keyboard={false}
+        animation={true}
+        style={{ maxHeight: '600px' }}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{recipient?.title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ overflowY: 'scroll' }}>
+          {Object.keys(optMessages).map((key) => {
+            if (key === recipient?.title) {
+              //work on concat here, only concat messages whose recipient.title is key and also whose sender is the tempUser, else all the messages of tempUser are concatenated in every dm
+              return optMessages[key]
+                .concat(optMessages[tempUser.username])
+                .filter((message) => {
+                  if (
+                    message?.senderId === recipient.title ||
+                    (message?.senderId === tempUser.username &&
+                      message?.receiverId === recipient.title)
+                  ) {
+                    return message;
+                  } else {
+                    return null;
+                  }
+                })
+                .sort((a, b) => {
+                  const dateA = new Date(a.timestamp);
+                  const dateB = new Date(b.timestamp);
+                  return dateA - dateB;
+                })
+                .map((message) => {
+                  return (
+                    <MessageBox
+                      key={message._id}
+                      position={
+                        message.receiverId === tempUser.username
+                          ? 'left'
+                          : 'right'
+                      }
+                      type={'text'}
+                      title={message.senderId}
+                      text={message.content}
+                    />
+                  );
+                });
+            } else {
+              return null;
+            }
+          })}
+          <Form
+            style={{ paddingTop: '20px' }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              //here you need to perform write message(Done)
+              writeMess({
+                variables: {
+                  message: {
+                    content: textMes,
+                    receiverId: recipient.title,
+                    senderId: tempUser.username,
+                  },
+                },
+              });
+              //here refetch all the records of this temp user
+              //the refetch here is not working, i think changing the back end where using the get function after the mutation is a good sollution
+              setTextMes('');
+              getMessagesFunc({
+                variables: {
+                  receiverId: tempUser.username,
+                },
+              });
+              refetch();
+            }}
+          >
+            <Form.Group>
+              <Form.Control
+                type='input'
+                placeholder={
+                  writeMessOpt.loading
+                    ? 'Sending...'
+                    : 'Write Your Message Here....'
+                }
+                value={textMes}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setTextMes(e.target.value.toString());
+                }}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={dmToggle}>
             Close
           </Button>
         </Modal.Footer>
