@@ -41,7 +41,7 @@ import { RabbitMQPublisherService } from './rabbitmq/rabbitmq.publisher.service'
     ProjectModule,
     FaqModule,
     RabbitMQModule.forRoot({
-      uri: 'amqp://rabbitmq:5672',
+      uri: 'amqp://localhost:5672',
     }),
   ],
   controllers: [],

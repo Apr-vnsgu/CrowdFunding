@@ -253,6 +253,7 @@ export class UserService {
       project_name,
     );
     const user = await this.getUserByUsername(username);
+    //this is not working as intended
     if (user) {
       await this.userRepository.update(user._id, {
         likedProjects: user.likedProjects.filter(

@@ -11,7 +11,7 @@ export class RabbitMQPublisherService {
     this.connectToRabbitMQ();
   }
   async connectToRabbitMQ() {
-    this.connection = await amqp.connect('amqp://rabbitmq:5672');
+    this.connection = await amqp.connect('amqp://localhost:5672');
     this.channel = await this.connection.createChannel();
   }
 
