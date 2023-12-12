@@ -541,7 +541,7 @@ const Projects = () => {
               )}
             </Button>
             {/* here the user can send a message to owner but only if he/she is logged in */}
-            {jwt && (
+            {jwt && temp.username !== tempUser.username && (
               <Button
                 variant='warning'
                 onClick={(e) => {

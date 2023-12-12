@@ -691,6 +691,12 @@ const NavBarPanel = () => {
                     senderId: tempUser.username,
                   },
                 },
+              }).catch((err) => {
+                enqueueSnackbar(`❗ Message Not Sent! ${err.message}`, {
+                  style: { background: 'white', color: 'red' },
+                  preventDuplicate: 'true',
+                  autoHideDuration: 3000,
+                });
               });
               //here refetch all the records of this temp user
               //the refetch here is not working, i think changing the back end where using the get function after the mutation is a good sollution

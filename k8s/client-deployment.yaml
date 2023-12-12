@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: crowdfunding-reactjs
-          image: aryarana/crowdfunding-react-service:v1
+          image: aryarana/crowdfunding-react-service:v2
           ports:
             - containerPort: 3000
